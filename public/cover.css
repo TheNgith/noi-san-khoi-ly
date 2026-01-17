@@ -1,0 +1,10 @@
+.cover_container {
+    position: relative;
+    width: 100%;
+    top: 60px;
+    text-align: center;
+}
+
+.cover {
+    height: 83vh;
+}
