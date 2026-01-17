@@ -1,0 +1,64 @@
+.pages_container {
+    position: relative;
+    width: 100%;
+    margin-top: 40px;
+    top: 60px;
+    justify-items: center;
+}
+
+/* The main container: images + comment column */
+.comment-block {
+    display: flex;
+    position: relative;
+    gap: 10px;
+}
+
+/* Column of pages (images stacked vertically) */
+.pages-column {
+    position: relative;
+}
+
+/* Your page images */
+.pages-column .page {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-bottom: var(--gap-between-pages); /* this is the "gap size between images" */
+}
+
+/* Transparent overlay covering the whole pages column */
+.comment-overlay {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    cursor: crosshair;
+    z-index: 2;
+}
+
+/* When comment mode is off, disable clicks */
+.comment-overlay.off {
+    pointer-events: none;
+    cursor: default;
+}
+
+/* Right-side column for bubbles */
+.comment-panel {
+    position: relative;
+    width: 260px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    color: #eee;
+}
+
+/* Existing toggle button styles still fine */
+.toggle-btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    border: none;
+    background: #333;
+    color: #fff;
+    cursor: pointer;
+}
+.toggle-btn.on {
+    background: #007bff;
+}

@@ -1,0 +1,48 @@
+@import url(colors.css);
+
+.navbar {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+    padding: 0px 20px;
+    height: 2rem;
+    align-items: center;
+    padding-top: 20px;
+    justify-content: space-between
+}
+
+.button_container {
+    display: flex;
+    gap: 30px;
+    width: fit-content;
+}
+
+.link_container_navbar {
+    width: fit-content;
+}
+
+.link_title_navbar {
+    position: relative;
+    z-index: 1;
+    font-size: 1.5rem;
+    font-weight:350;
+    width: fit-content;
+}
+
+.link_underline_navbar {
+    top: -0.8rem; /* move up to overlap previous */
+    z-index: 2; /* make sure it’s on top */
+    height: 30px;
+    position: relative;
+    width: auto;
+
+    background: linear-gradient(
+        to bottom,
+        rgba(var(--rgb), 0) 0%,
+        rgba(var(--rgb), 0.5) 25%,
+        rgba(var(--rgb), 1) 50%,
+        rgba(var(--rgb), 0.5) 75%,
+        rgba(var(--rgb), 0) 100%
+    );
+}
+

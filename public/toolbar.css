@@ -1,0 +1,67 @@
+.toolbar_container {
+    /* height: 50px; */
+    /* background-color: white; */
+    display: flex;
+    flex-direction: column;
+    position: fixed; /* stays in place when scrolling */
+    top: 100px;
+    right: 0;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-right: 20px;
+}
+
+.zoom_container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.zoom_percent {
+    text-align: center;
+    justify-content: center;
+    align-content: center;
+    font-size: 1.25rem;
+}
+
+
+.dual_page_toggler_container {
+    display: flex;
+    justify-content: flex-end;
+}
+.dual_page_toggler {
+    width: fit-content;
+}
+
+
+.download_container {
+    display: flex;
+    width: fit-content;
+    flex-direction: row-reverse;
+}
+.download_icon {
+    align-content: center;
+}
+.download_options_container {
+    padding-right: 10px;
+    display: flex;
+    flex-direction: column;
+    transform: scaleX(0);
+    opacity: 0;
+    pointer-events: none; /* Prevents clicking the invisible element */
+    transform-origin: right;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.dl_thischap_btn, .dl_all_btn {
+    text-align: left;
+    font-size: 0.875rem;
+}
+.download_icon:hover + .download_options_container {
+    transform: scaleX(1);
+    opacity: 1;
+    pointer-events: auto; /* Makes it clickable again */
+}
+.download_options_container:hover{
+    transform: scaleX(1);
+    opacity: 1;
+    pointer-events: auto; /* Makes it clickable again */
+}
