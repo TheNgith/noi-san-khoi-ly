@@ -2,9 +2,9 @@
   "name": "image-comments-backend",
   "version": "1.0.0",
   "description": "Simple Express backend for image comments stored in JSON",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.19.2"

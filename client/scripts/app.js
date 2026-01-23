@@ -1,0 +1,134 @@
+/**
+ * Main application entry point
+ * Coordinates all modules and handles initialization
+ */
+
+import { fetchCommentsForImage, saveComment } from './api.js';
+import { addBubbleAnimated } from './bubble.js';
+import { syncPanelHeight, waitForImage } from './layout.js';
+import { createStateManager } from './state.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById("toggleOverlayBtn");
+    const pageWrappers = Array.from(document.querySelectorAll(".page-wrapper"));
+
+    if (!toggleBtn || !pageWrappers.length) {
+        console.error("Missing toggle button or .page-wrapper elements.");
+        return;
+    }
+
+    // Initialize state manager
+    const stateManager = createStateManager(toggleBtn);
+
+    // ----------- Setup each page -----------
+
+    const pageStates = pageWrappers
+        .map((wrapper) => {
+            const pageContainer = wrapper.querySelector(".page-container");
+            const page = wrapper.querySelector("img.page");
+            const overlay = wrapper.querySelector(".comment-overlay");
+            const commentPanel = wrapper.querySelector(".comment-panel");
+
+            if (!pageContainer || !page || !overlay || !commentPanel) {
+                console.error("Missing elements inside a .page-wrapper");
+                return null;
+            }
+
+            // Use full image path as unique identifier
+            const imageId = page.getAttribute("src");
+
+            // Get chapter class from parent comment-block
+            const commentBlock = wrapper.closest(".comment-block");
+            const chapterClass = commentBlock
+                ? [...commentBlock.classList]
+                    .find((c) => c.startsWith("k") && c.includes("_"))
+                    ?.split("_")[0]
+                : "default";
+
+            // Click handler for this page's overlay
+            overlay.addEventListener("click", async (e) => {
+                if (!stateManager.getCommentMode()) return;
+
+                const rect = page.getBoundingClientRect();
+                const clickX = e.clientX;
+                const clickY = e.clientY;
+
+                const xPct = (clickX - rect.left) / rect.width;
+                const yPct = (clickY - rect.top) / rect.height;
+
+                const author = prompt("Your name:");
+                if (!author || !author.trim()) return;
+
+                const text = prompt("Type your comment:");
+                if (!text) return;
+
+                const newComment = {
+                    imageId,
+                    xPct,
+                    yPct,
+                    text: text.trim(),
+                    author: author.trim(),
+                    createdAt: new Date().toISOString(),
+                    chapter: chapterClass,
+                };
+
+                // Animate new comment
+                addBubbleAnimated(
+                    { commentPanel },
+                    newComment,
+                    0,
+                );
+                await saveComment(newComment);
+            });
+
+            return {
+                wrapper,
+                pageContainer,
+                page,
+                overlay,
+                commentPanel,
+                imageId,
+            };
+        })
+        .filter(Boolean);
+
+    // ----------- Global button -----------
+
+    toggleBtn.addEventListener("click", () => {
+        stateManager.toggle();
+        stateManager.updateButtonLabel();
+        stateManager.applyOverlayState(pageStates);
+    });
+
+    // ----------- Init -----------
+
+    async function init() {
+        // 1) Wait for all images to load so heights are stable
+        await Promise.all(pageStates.map((p) => waitForImage(p.page)));
+
+        // 2) Sync heights for each page's comment panel
+        pageStates.forEach((p) => syncPanelHeight(p.page, p.commentPanel));
+        stateManager.updateButtonLabel();
+        stateManager.applyOverlayState(pageStates);
+
+        // 3) Fetch and animate comments for each page
+        for (const pageState of pageStates) {
+            const comments = await fetchCommentsForImage(pageState.imageId);
+
+            comments
+                .slice()
+                .sort((a, b) => (a.yPct ?? 0) - (b.yPct ?? 0))
+                .forEach((comment, idx) => {
+                    const delay = 150 + idx * 90;
+                    addBubbleAnimated(pageState, comment, delay);
+                });
+        }
+
+        // 4) Keep panel heights in sync on resize
+        window.addEventListener("resize", () => {
+            pageStates.forEach((p) => syncPanelHeight(p.page, p.commentPanel));
+        });
+    }
+
+    init();
+});
