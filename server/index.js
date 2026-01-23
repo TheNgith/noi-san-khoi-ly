@@ -6,10 +6,10 @@ const app = express();
 const PORT = 3000;
 
 // Path to your JSON "database"
-const DATA_FILE = path.join(__dirname, "comments.json");
+const DATA_FILE = path.join(__dirname, "data", "comments.json");
 
-// Serve frontend from ../public
-const PUBLIC_DIR = path.join(__dirname, "..", "public");
+// Serve frontend from ../client
+const CLIENT_DIR = path.join(__dirname, "..", "client");
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 });
 
 // Serve static frontend
-app.use(express.static(PUBLIC_DIR));
+app.use(express.static(CLIENT_DIR));
 
 // Utility: read all comments from file
 async function readComments() {
@@ -121,7 +121,7 @@ app.post("/api/comments", async (req, res) => {
 
 // Fallback: send index.html for any other route (SPA style)
 app.get("*", (req, res) => {
-  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
+  res.sendFile(path.join(CLIENT_DIR, "index.html"));
 });
 
 app.listen(PORT, () => {
