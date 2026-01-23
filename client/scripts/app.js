@@ -7,9 +7,11 @@ import { fetchCommentsForImage, saveComment } from './api.js';
 import { addBubbleAnimated } from './bubble.js';
 import { syncPanelHeight, waitForImage } from './layout.js';
 import { createStateManager } from './state.js';
+import { createDualPageManager } from './dualPage.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     const toggleBtn = document.getElementById("toggleOverlayBtn");
+    const dualPageBtn = document.querySelector(".dual_page_toggler");
     const pageWrappers = Array.from(document.querySelectorAll(".page-wrapper"));
 
     if (!toggleBtn || !pageWrappers.length) {
@@ -19,6 +21,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize state manager
     const stateManager = createStateManager(toggleBtn);
+
+    // Initialize dual page manager
+    const dualPageManager = createDualPageManager();
+
+    // Re-sync panel heights after layout changes
+    dualPageManager.onLayoutChange(() => {
+        const allPageWrappers = document.querySelectorAll(".page-wrapper");
+        allPageWrappers.forEach((wrapper) => {
+            const page = wrapper.querySelector("img.page");
+            const commentPanel = wrapper.querySelector(".comment-panel");
+            if (page && commentPanel) {
+                syncPanelHeight(page, commentPanel);
+            }
+        });
+    });
 
     // ----------- Setup each page -----------
 
@@ -92,13 +109,28 @@ document.addEventListener("DOMContentLoaded", () => {
         })
         .filter(Boolean);
 
-    // ----------- Global button -----------
+    // ----------- Global buttons -----------
 
     toggleBtn.addEventListener("click", () => {
         stateManager.toggle();
         stateManager.updateButtonLabel();
         stateManager.applyOverlayState(pageStates);
     });
+
+    // Dual page mode toggle
+    if (dualPageBtn) {
+        dualPageBtn.addEventListener("click", () => {
+            dualPageManager.toggle();
+            dualPageManager.applyLayout();
+
+            // Update button state
+            if (dualPageManager.isDualPage()) {
+                dualPageBtn.classList.add("active");
+            } else {
+                dualPageBtn.classList.remove("active");
+            }
+        });
+    }
 
     // ----------- Init -----------
 

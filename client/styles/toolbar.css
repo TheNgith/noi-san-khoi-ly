@@ -30,6 +30,15 @@
 }
 .dual_page_toggler {
     width: fit-content;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+.dual_page_toggler:hover {
+    opacity: 0.8;
+}
+.dual_page_toggler.active {
+    opacity: 1;
 }
 
 

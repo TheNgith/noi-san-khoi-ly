@@ -221,3 +221,88 @@
   opacity: 0;
   transform: scale(0.92);
 }
+
+/* =========================
+   Left Page Mode (Mirrored)
+   ========================= */
+
+/* Anchor bubble to the right side of the panel */
+.left-page .comment-bubble {
+    left: auto;
+    right: 0;
+    transform-origin: top right;
+}
+
+/* Icon on the right side */
+.left-page .comment-bubble::before {
+    left: auto;
+    right: 0;
+}
+
+/* Mirror the enter animation */
+.left-page .comment-bubble.bubble-enter {
+    transform: translateY(calc(-0.5 * var(--comment-buble-size))) scale(0.92);
+}
+
+.left-page .comment-bubble.bubble-enter-active {
+    transform: translateY(calc(-0.5 * var(--comment-buble-size))) scale(1);
+}
+
+/* Content slides from left instead of right */
+.left-page .comment-author,
+.left-page .author-underline,
+.left-page .comment-text,
+.left-page .comment-elapsed-time {
+    transform: translateX(-16px);
+}
+
+/* Text padding on the right side */
+.left-page .comment-text {
+    padding-left: 0;
+    padding-right: calc(var(--comment-buble-size) + 20px);
+    text-align: right;
+}
+
+.left-page .comment-elapsed-time {
+    padding-left: 0;
+    padding-right: calc(var(--comment-buble-size) + 20px);
+    text-align: right;
+}
+
+/* Bubble underline on the right */
+.left-page .comment-bubble .bubble-underline {
+    margin-left: auto;
+}
+
+/* Meta content aligned right */
+.left-page .comment-meta {
+    margin-left: auto;
+}
+
+/* Author underline aligned right */
+.left-page .author-underline {
+    margin-left: auto;
+}
+
+/* Open state for left page */
+.left-page .comment-bubble.open {
+    transform:
+        translateY(calc(-0.5 * var(--comment-buble-size)))
+        translateY(4px);
+}
+
+/* Reveal content (slides to neutral from left) */
+.left-page .comment-bubble.open .comment-author,
+.left-page .comment-bubble.open .author-underline,
+.left-page .comment-bubble.open .comment-text,
+.left-page .comment-bubble.open .comment-elapsed-time {
+    transform: translateX(0);
+}
+
+/* Closing animation slides back to left */
+.left-page .comment-bubble.closing .comment-author,
+.left-page .comment-bubble.closing .author-underline,
+.left-page .comment-bubble.closing .comment-text,
+.left-page .comment-bubble.closing .comment-elapsed-time {
+    transform: translateX(-8px);
+}
