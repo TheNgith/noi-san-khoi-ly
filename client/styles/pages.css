@@ -76,7 +76,7 @@
 /* Container for a pair of pages in dual-page mode */
 .page-pair {
     display: flex;
-    gap: var(--gap-between-pages);
+    gap: 1px;
     margin-bottom: var(--gap-between-pages);
 }
 
