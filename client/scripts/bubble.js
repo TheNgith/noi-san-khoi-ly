@@ -8,6 +8,12 @@ const CLOSE_FADE_MS = 170; // must match CSS fade duration
 export function openBubble(bubble) {
     bubble.classList.remove("closing");
     bubble.classList.add("open");
+
+    // Add has-open-comment class to the page-wrapper
+    const pageWrapper = bubble.closest(".page-wrapper");
+    if (pageWrapper) {
+        pageWrapper.classList.add("has-open-comment");
+    }
 }
 
 export function closeBubble(bubble) {
@@ -22,6 +28,16 @@ export function closeBubble(bubble) {
     setTimeout(() => {
         bubble.classList.remove("open", "closing");
         bubble.style.pointerEvents = "";
+
+        // Check if any other bubbles are still open in this panel
+        const panel = bubble.closest(".comment-panel");
+        const pageWrapper = bubble.closest(".page-wrapper");
+        if (panel && pageWrapper) {
+            const hasOtherOpenBubbles = panel.querySelector(".comment-bubble.open") !== null;
+            if (!hasOtherOpenBubbles) {
+                pageWrapper.classList.remove("has-open-comment");
+            }
+        }
     }, CLOSE_FADE_MS);
 }
 
