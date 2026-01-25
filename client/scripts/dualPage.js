@@ -61,7 +61,7 @@ export function createDualPageManager() {
                         isTransitioning = false;
                     });
                 });
-            }, 150); // Duration of fade-out
+            }, 150); // Duration of fade-out (ms)
         },
     };
 }

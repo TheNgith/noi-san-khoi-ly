@@ -4,7 +4,7 @@
 
 /* Each comment bubble: positioned according to yPct over total height */
 .comment-bubble {
-    --comment-buble-size: 40px;
+    --comment-buble-size: 30px;
 
     position: absolute;
     left: 0;
@@ -102,8 +102,8 @@
 }
 
 .author-underline {
-    margin-top: 5px;
-    height: 30px;
+    margin-top: 8px;
+    height: 20px;
     width: 100%;
     background: linear-gradient(
         to bottom,
@@ -117,7 +117,7 @@
 
 .comment-bubble .bubble-underline {
     width: var(--comment-buble-size);
-    height: 30px;
+    height: 15px;
     background: linear-gradient(
         to bottom,
         rgba(var(--rgb), 0) 0%,
@@ -126,7 +126,7 @@
         rgba(var(--rgb), 0.5) 75%,
         rgba(var(--rgb), 0) 100%
     );
-    margin-top: 30px;
+    margin-top: 25px;
 }
 
 .comment-bubble .comment-elapsed-time {
@@ -159,7 +159,7 @@
 /* Reveal content */
 .comment-bubble.open .comment-author {
     display: block;
-    font-size: 1.9rem;
+    font-size: 1.2rem;
     font-weight: bold;
 
     opacity: 1;
