@@ -4,6 +4,9 @@
     margin-top: 40px;
     top: 60px;
     justify-items: center;
+    /* Zoom control - set via JavaScript */
+    --zoom-level: 1;
+    --base-page-width: 45vw;
 }
 
 /* The main container for a chapter */
@@ -35,9 +38,13 @@
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
+    /* Apply zoom level to page width */
+    width: calc(var(--base-page-width) * var(--zoom-level));
+    max-width: calc(100vw - 300px); /* Leave room for panel */
+    transition: transform 380ms cubic-bezier(.2, .8, .2, 1),
+                width 280ms cubic-bezier(.2, .8, .2, 1);
     /* Offset right to center the page visually (half of panel + gap) */
     transform: translateX(calc((260px + 10px) / 2));
-    transition: transform 380ms cubic-bezier(.2, .8, .2, 1);
 }
 
 /* Shift page left when comment is open */
@@ -95,6 +102,12 @@
     display: flex;
     gap: 1px;
     margin-bottom: var(--gap-between-pages);
+    /* Apply zoom to the pair - base is ~90vw for two pages */
+    width: calc(90vw * var(--zoom-level));
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    transition: width 280ms cubic-bezier(.2, .8, .2, 1);
 }
 
 /* In dual-page mode, use flex layout for side-by-side pages */
@@ -110,6 +123,9 @@
 .page-pair .page-container {
     flex: 1;
     transform: none;
+    /* Override single-page width, use flex for sizing */
+    width: auto;
+    max-width: none;
 }
 
 .page-pair .page-wrapper.has-open-comment .page-container {
@@ -136,6 +152,17 @@
 /* Right page: normal direction (panel on right) */
 .page-pair .page-wrapper.right-page {
     flex-direction: row;
+}
+
+/* Hide comment bubbles in dual-page mode at high zoom (>=140% actual) */
+.zoom-hide-bubbles .page-pair .comment-panel {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 200ms ease, visibility 0s 200ms;
+}
+
+.zoom-hide-bubbles .page-pair .comment-bubble {
+    display: none;
 }
 
 /* Existing toggle button styles still fine */
