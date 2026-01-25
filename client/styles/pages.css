@@ -26,15 +26,23 @@
 .page-wrapper {
     display: flex;
     position: relative;
-    gap: 10px;
     margin-bottom: var(--gap-between-pages);
+    justify-content: center;
 }
 
 /* Container for page image + overlay */
 .page-container {
     position: relative;
-    flex: 1;
     overflow: hidden;
+    flex-shrink: 0;
+    /* Offset right to center the page visually (half of panel + gap) */
+    transform: translateX(calc((260px + 10px) / 2));
+    transition: transform 380ms cubic-bezier(.2, .8, .2, 1);
+}
+
+/* Shift page left when comment is open */
+.page-wrapper.has-open-comment .page-container {
+    transform: translateX(0);
 }
 
 /* Your page images */
@@ -64,9 +72,18 @@
     position: relative;
     width: 260px;
     flex-shrink: 0;
+    margin-left: 10px;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
     color: #eee;
+    /* Shift together with page-container to keep them aligned */
+    transform: translateX(calc((260px + 10px) / 2));
+    transition: transform 380ms cubic-bezier(.2, .8, .2, 1);
+}
+
+/* Shift panel back when comment is open */
+.page-wrapper.has-open-comment .comment-panel {
+    transform: translateX(0);
 }
 
 /* =========================
@@ -80,10 +97,35 @@
     margin-bottom: var(--gap-between-pages);
 }
 
-/* In dual-page mode, page-wrappers don't have their own margin */
+/* In dual-page mode, use flex layout for side-by-side pages */
 .page-pair .page-wrapper {
+    display: flex;
     margin-bottom: 0;
     flex: 1;
+    gap: 10px;
+    justify-content: flex-start;
+}
+
+/* In dual-page mode, no centering transforms needed */
+.page-pair .page-container {
+    flex: 1;
+    transform: none;
+}
+
+.page-pair .page-wrapper.has-open-comment .page-container {
+    transform: none;
+}
+
+/* In dual-page mode, panels don't need centering transform */
+.page-pair .comment-panel {
+    width: 260px;
+    flex-shrink: 0;
+    margin-left: 0;
+    transform: none;
+}
+
+.page-pair .page-wrapper.has-open-comment .comment-panel {
+    transform: none;
 }
 
 /* Left page: reverse the flex direction so panel is on the left */
