@@ -13,6 +13,10 @@ export function createStateManager(toggleBtn) {
             commentMode = !commentMode;
         },
 
+        setCommentMode: (enabled) => {
+            commentMode = enabled;
+        },
+
         updateButtonLabel: () => {
             if (commentMode) {
                 toggleBtn.classList.add("on");

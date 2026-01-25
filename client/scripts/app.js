@@ -8,10 +8,14 @@ import { addBubbleAnimated } from './bubble.js';
 import { syncPanelHeight, waitForImage } from './layout.js';
 import { createStateManager } from './state.js';
 import { createDualPageManager } from './dualPage.js';
+import { createZoomManager } from './zoom.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     const toggleBtn = document.getElementById("toggleOverlayBtn");
     const dualPageBtn = document.querySelector(".dual_page_toggler");
+    const zoomInBtn = document.querySelector(".zoom_in_btn");
+    const zoomOutBtn = document.querySelector(".zoom_out_btn");
+    const zoomPercentDisplay = document.querySelector(".zoom_percent");
     const pageWrappers = Array.from(document.querySelectorAll(".page-wrapper"));
 
     if (!toggleBtn || !pageWrappers.length) {
@@ -25,8 +29,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize dual page manager
     const dualPageManager = createDualPageManager();
 
-    // Re-sync panel heights after layout changes
-    dualPageManager.onLayoutChange(() => {
+    // Initialize zoom manager
+    const zoomManager = createZoomManager(zoomInBtn, zoomOutBtn, zoomPercentDisplay);
+
+    // Helper to sync all panel heights
+    const syncAllPanelHeights = () => {
         const allPageWrappers = document.querySelectorAll(".page-wrapper");
         allPageWrappers.forEach((wrapper) => {
             const page = wrapper.querySelector("img.page");
@@ -34,6 +41,17 @@ document.addEventListener("DOMContentLoaded", () => {
             if (page && commentPanel) {
                 syncPanelHeight(page, commentPanel);
             }
+        });
+    };
+
+    // Re-sync panel heights after layout changes
+    dualPageManager.onLayoutChange(syncAllPanelHeights);
+
+    // Re-sync panel heights after zoom changes
+    zoomManager.onZoomChange(() => {
+        // Use requestAnimationFrame to wait for width transition to apply
+        requestAnimationFrame(() => {
+            setTimeout(syncAllPanelHeights, 300); // Wait for transition
         });
     });
 
@@ -115,6 +133,15 @@ document.addEventListener("DOMContentLoaded", () => {
         stateManager.toggle();
         stateManager.updateButtonLabel();
         stateManager.applyOverlayState(pageStates);
+    });
+
+    // Disable comment mode when bubbles are hidden in dual-page mode
+    zoomManager.onHideBubblesChange((shouldHide) => {
+        if (shouldHide && dualPageManager.isDualPage()) {
+            stateManager.setCommentMode(false);
+            stateManager.updateButtonLabel();
+            stateManager.applyOverlayState(pageStates);
+        }
     });
 
     // Dual page mode toggle
