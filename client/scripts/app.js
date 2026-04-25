@@ -23,6 +23,50 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    // ----------- Sidebar slide tied to cover visibility -----------
+    const coverEl = document.querySelector(".cover_container");
+    if (coverEl) {
+        const bodyEl = document.body;
+        let restoreTransitionTimer = null;
+        const updateSidebarSlide = () => {
+            const rect = coverEl.getBoundingClientRect();
+            const h = rect.height || 1;
+            // 0 when cover fully in view (bottom >= height), 1 when cover fully out (bottom <= 0)
+            const progress = Math.min(1, Math.max(0, 1 - rect.bottom / h));
+            // Disable transition during scroll so the slide tracks 1:1 (linear).
+            // The !important hover rule in CSS still wins over this inline style.
+            bodyEl.style.transition = "none";
+            bodyEl.style.setProperty("--slide-progress", progress.toFixed(4));
+            clearTimeout(restoreTransitionTimer);
+            restoreTransitionTimer = setTimeout(() => {
+                bodyEl.style.transition = "";
+            }, 120);
+        };
+        updateSidebarSlide();
+        window.addEventListener("scroll", updateSidebarSlide, { passive: true });
+        window.addEventListener("resize", updateSidebarSlide);
+    }
+
+    // ----------- Navbar curl on scroll direction -----------
+    const navbarEl = document.querySelector(".navbar");
+    if (navbarEl) {
+        let lastScrollY = window.scrollY;
+        const SCROLL_THRESHOLD = 8; // ignore jitter
+        const TOP_OFFSET = 40; // keep uncurled near the very top
+        const updateNavbarCurl = () => {
+            const currentY = window.scrollY;
+            const delta = currentY - lastScrollY;
+            if (Math.abs(delta) < SCROLL_THRESHOLD) return;
+            if (delta > 0 && currentY > TOP_OFFSET) {
+                navbarEl.classList.add("curled");
+            } else if (delta < 0) {
+                navbarEl.classList.remove("curled");
+            }
+            lastScrollY = currentY;
+        };
+        window.addEventListener("scroll", updateNavbarCurl, { passive: true });
+    }
+
     // Initialize state manager
     const stateManager = createStateManager(toggleBtn);
 

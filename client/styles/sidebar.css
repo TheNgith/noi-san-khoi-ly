@@ -1,5 +1,32 @@
 @import url(colors.css);
 
+@property --slide-progress {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+}
+
+:root {
+    --sidebar-width: 200px;
+    --peek: 20px;
+    --hide-amount: calc(-1 * (var(--sidebar-width) - var(--peek)));
+}
+
+body {
+    /* 0 = fully visible (cover in view), 1 = hidden (peek only) */
+    --slide-progress: 1;
+    transition: --slide-progress 220ms ease;
+}
+
+/* Hover on the edge or sidebar forces the sidebar open.
+   !important beats the inline --slide-progress that JS writes during scroll. */
+body:has(.hover-edge:hover),
+body:has(.sidebar:hover),
+body:has(.sidebar:focus-within),
+body:has(.sidebar-hint:hover) {
+    --slide-progress: 0 !important;
+}
+
 .sidebar_container {
     display: flex;
     min-height: 100vh; /* full height */
@@ -9,8 +36,6 @@
 /* Sidebar */
 .sidebar {
     padding-left: 20px;
-    --sidebar-width: 200px;
-    --peek: 20px;
     display: flex;
     flex-direction: column;
     color: white;
@@ -19,8 +44,7 @@
     top: 100px;
     left: 0;
     width: var(--sidebar-width);
-    transform: translateX(calc(-1 * (var(--sidebar-width) - var(--peek))));
-    transition: transform 220ms ease;
+    transform: translateX(calc(var(--slide-progress) * var(--hide-amount)));
     will-change: transform;
     overflow: auto;
 
@@ -75,7 +99,7 @@
 }
 
 .link_container:hover .link_title {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
 }
 
 
@@ -85,16 +109,65 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: var(--edge-width);
+  width: 24px;
   height: 100vh;
-  z-index: var(--z-edge);
-  /* Optional: give a faint line so users can discover it */
-  /* background: linear-gradient(to right, rgba(255,255,255,.06), transparent); */
+  z-index: 4;
 }
 
-/* Slide in when hovering the edge OR the sidebar itself */
-.hover-edge:hover ~ .sidebar,
-.sidebar:hover,
-.sidebar:focus-within{
-  transform: translateX(0);
+/* Hint: chevron at the right edge of the peek area,
+   fades in/out with the sidebar via --slide-progress */
+.sidebar-hint {
+    position: fixed;
+    top: 50%;
+    left: calc(var(--peek) + 4px);
+    color: #fff;
+    font-size: 1.5rem;
+    opacity: calc(var(--slide-progress) * 0.85);
+    pointer-events: none;
+    z-index: 5;
+    animation: sidebar-hint-nudge 1.8s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.6));
+}
+
+.sidebar-hint i {
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-hint::before,
+.sidebar-hint::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.15);
+    animation: sidebar-hint-ping 1.8s ease-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.sidebar-hint::after {
+    animation-delay: 0.9s;
+}
+
+@keyframes sidebar-hint-nudge {
+    0%, 100% { transform: translate(0, -50%); }
+    50%      { transform: translate(5px, -50%); }
+}
+
+@keyframes sidebar-hint-ping {
+    0%   { width: 10px; height: 10px; opacity: 0.45; }
+    100% { width: 32px; height: 32px; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-hint,
+    .sidebar-hint::before,
+    .sidebar-hint::after {
+        animation: none;
+    }
 }

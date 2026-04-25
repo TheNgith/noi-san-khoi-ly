@@ -1,14 +1,29 @@
 @import url(colors.css);
 
+.logo {
+    height: 45px;
+}
+
 .navbar {
     display: flex;
     gap: 20px;
     margin-top: 10px;
     padding: 0px 20px;
-    height: 2rem;
+    height: fit-content;
     align-items: center;
-    padding-top: 20px;
-    justify-content: space-between
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: #000;
+    padding-top: 0px;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+    will-change: transform;
+}
+
+.navbar.curled {
+    transform: translateY(-100%);
 }
 
 .button_container {
@@ -24,7 +39,7 @@
 .link_title_navbar {
     position: relative;
     z-index: 1;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight:350;
     width: fit-content;
 }
