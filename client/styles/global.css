@@ -34,3 +34,9 @@ button {
 /* div {
     border: 0.5px solid white;
 } */
+
+svg * {
+    width: 40px;
+    height: 40px;
+    vector-effect: non-scaling-stroke;
+}

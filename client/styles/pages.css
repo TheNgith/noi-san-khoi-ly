@@ -2,11 +2,11 @@
     position: relative;
     width: 100%;
     margin-top: 40px;
-    top: 60px;
+    top: 0px;
     justify-items: center;
     /* Zoom control - set via JavaScript */
     --zoom-level: 1;
-    --base-page-width: 45vw;
+    --base-page-width: 545px;
 }
 
 /* The main container for a chapter */
@@ -41,15 +41,10 @@
     /* Apply zoom level to page width */
     width: calc(var(--base-page-width) * var(--zoom-level));
     max-width: calc(100vw - 300px); /* Leave room for panel */
-    transition: transform 380ms cubic-bezier(.2, .8, .2, 1),
-                width 280ms cubic-bezier(.2, .8, .2, 1);
-    /* Offset right to center the page visually (half of panel + gap) */
-    transform: translateX(calc((260px + 10px) / 2));
-}
-
-/* Shift page left when comment is open */
-.page-wrapper.has-open-comment .page-container {
-    transform: translateX(0);
+    transition: width 280ms cubic-bezier(.2, .8, .2, 1);
+    /* Shift right so the page is centered in the viewport while the comment
+       panel stays attached at its side. Half of (panel width + gap). */
+    transform: translateX(calc((260px + 15px) / 2));
 }
 
 /* Your page images */
@@ -79,18 +74,13 @@
     position: relative;
     width: 260px;
     flex-shrink: 0;
-    margin-left: 10px;
+    margin-left: 15px;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
     color: #eee;
-    /* Shift together with page-container to keep them aligned */
-    transform: translateX(calc((260px + 10px) / 2));
-    transition: transform 380ms cubic-bezier(.2, .8, .2, 1);
-}
-
-/* Shift panel back when comment is open */
-.page-wrapper.has-open-comment .comment-panel {
-    transform: translateX(0);
+    /* Match the page-container shift so the panel stays attached at its side
+       while the page appears centered in the viewport. */
+    transform: translateX(calc((260px + 15px) / 2));
 }
 
 /* =========================
@@ -100,7 +90,7 @@
 /* Container for a pair of pages in dual-page mode */
 .page-pair {
     display: flex;
-    gap: 1px;
+    gap: 0.5px;
     margin-bottom: var(--gap-between-pages);
     /* Apply zoom to the pair - base is ~90vw for two pages */
     width: calc(90vw * var(--zoom-level));
@@ -119,28 +109,21 @@
     justify-content: flex-start;
 }
 
-/* In dual-page mode, no centering transforms needed */
+/* In dual-page mode, override single-page width, use flex for sizing */
 .page-pair .page-container {
     flex: 1;
-    transform: none;
-    /* Override single-page width, use flex for sizing */
     width: auto;
     max-width: none;
-}
-
-.page-pair .page-wrapper.has-open-comment .page-container {
+    /* No centering shift in dual-page mode — the pair centers itself */
     transform: none;
 }
 
-/* In dual-page mode, panels don't need centering transform */
+/* In dual-page mode, panels sit directly adjacent to the page */
 .page-pair .comment-panel {
     width: 260px;
     flex-shrink: 0;
     margin-left: 0;
-    transform: none;
-}
-
-.page-pair .page-wrapper.has-open-comment .comment-panel {
+    /* No centering shift in dual-page mode */
     transform: none;
 }
 
