@@ -2,11 +2,11 @@
     position: relative;
     width: 100%;
     margin-top: 40px;
-    top: 60px;
+    top: 0px;
     justify-items: center;
     /* Zoom control - set via JavaScript */
     --zoom-level: 1;
-    --base-page-width: 45vw;
+    --base-page-width: 545px;
 }
 
 /* The main container for a chapter */
