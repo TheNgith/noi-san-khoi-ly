@@ -459,31 +459,34 @@
         <div class="toolbar_container">
             <div class="zoom_container">
                 <button class="zoom_in_btn">
-                    <img src="assets/icons/zoomIn.svg" alt="" />
+                    <img src="assets/icons/zoomIn.svg" alt="Zoom in" />
                 </button>
                 <div class="zoom_percent">100%</div>
                 <button class="zoom_out_btn">
-                    <img src="assets/icons/zoomOut.svg" alt="" />
+                    <img src="assets/icons/zoomOut.svg" alt="Zoom out" />
                 </button>
             </div>
-            <div class="dual_page_toggler_container">
+            <div class="page_mode_container">
                 <button class="dual_page_toggler">
-                    <img src="assets/icons/dual_page.svg" alt="" />
+                    <img src="assets/icons/single_page_mode.svg" alt="Page mode" class="page_mode_icon single" />
+                    <img src="assets/icons/dual_page_mode.svg" alt="Page mode" class="page_mode_icon dual" style="display:none;" />
                 </button>
+                <div class="page-mode-hint">Đọc với trang đôi</div>
             </div>
             <div class="download_container">
                 <div class="download_icon">
-                    <img src="assets/icons/download.svg" alt="" />
+                    <img src="assets/icons/download.svg" alt="Download" />
                 </div>
                 <div class="download_options_container">
                     <button class="dl_thischap_btn">Tải chương này</button>
                     <button class="dl_all_btn">Tải toàn bộ</button>
                 </div>
             </div>
-            <div class="controls">
-                <button id="toggleOverlayBtn" class="toggle-btn on">
-                    Comment mode: ON
+            <div class="cmt_toggle_container">
+                <button id="toggleOverlayBtn" class="cmt_toggle_btn on">
+                    <img src="assets/icons/cmt_mode_on.svg" alt="Comment mode" class="cmt_icon" />
                 </button>
+                <div class="cmt-hint">Tắt chế độ trang đôi để bình luận</div>
             </div>
         </div>
         <script type="module" src="scripts/app.js"></script>

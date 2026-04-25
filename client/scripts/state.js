@@ -18,12 +18,13 @@ export function createStateManager(toggleBtn) {
         },
 
         updateButtonLabel: () => {
+            const img = toggleBtn.querySelector('.cmt_icon');
             if (commentMode) {
                 toggleBtn.classList.add("on");
-                toggleBtn.textContent = "Comment mode: ON";
+                if (img) img.src = "assets/icons/cmt_mode_on.svg";
             } else {
                 toggleBtn.classList.remove("on");
-                toggleBtn.textContent = "Comment mode: OFF";
+                if (img) img.src = "assets/icons/cmt_mode_off.svg";
             }
         },
 

@@ -1,76 +1,154 @@
 .toolbar_container {
-    /* height: 50px; */
-    /* background-color: white; */
     display: flex;
     flex-direction: column;
-    position: fixed; /* stays in place when scrolling */
+    position: fixed;
     top: 100px;
     right: 0;
-    justify-content: flex-end;
-    gap: 10px;
+    align-items: center;
+    gap: 25px;
     margin-right: 20px;
+    z-index: 100;
 }
 
-.zoom_container {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-.zoom_percent {
-    text-align: center;
-    justify-content: center;
-    align-content: center;
-    font-size: 1.25rem;
-}
-
-
-.dual_page_toggler_container {
-    display: flex;
-    justify-content: flex-end;
-}
-.dual_page_toggler {
-    width: fit-content;
+/* ---- Shared button reset ---- */
+.toolbar_container button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 1;
     transition: opacity 0.2s ease;
 }
-.dual_page_toggler:hover {
-    opacity: 0.8;
+.toolbar_container button:hover {
+    opacity: 0.5;
 }
-.dual_page_toggler.active {
+.toolbar_container button.active,
+.toolbar_container button.on {
     opacity: 1;
 }
 
-
-.download_container {
-    display: flex;
-    width: fit-content;
-    flex-direction: row-reverse;
-}
-.download_icon {
-    align-content: center;
-}
-.download_options_container {
-    padding-right: 10px;
+/* ---- Zoom ---- */
+.zoom_container {
     display: flex;
     flex-direction: column;
-    transform: scaleX(0);
+    align-items: center;
+    gap: 10px;
+}
+.zoom_container img {
+    width: 25px;
+    height: 25px;
+}
+.zoom_percent {
+    margin-top: -5px;
+    margin-bottom: 0px;
+    text-align: center;
+    font-size: 0.8rem;
+    line-height: 1;
+    opacity: 0.7;
+}
+
+/* ---- Page mode ---- */
+.page_mode_container {
+    display: flex;
+    justify-content: center;
+}
+.dual_page_toggler {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.page_mode_icon {
+    width: 25px;
+    height: 25px;
+}
+
+/* ---- Download ---- */
+.download_container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+.download_icon {
+    cursor: pointer;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+.download_icon:hover {
+    opacity: 0.5;
+}
+.download_icon img {
+    width: 25px;
+    height: 25px;
+}
+.download_options_container {
+    position: absolute;
+    right: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%) translateX(8px);
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    padding: 0px 0px;
     opacity: 0;
-    pointer-events: none; /* Prevents clicking the invisible element */
-    transform-origin: right;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity 0.25s ease, transform 0.25s ease;
 }
 .dl_thischap_btn, .dl_all_btn {
     text-align: left;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
 }
-.download_icon:hover + .download_options_container {
-    transform: scaleX(1);
+.download_container:hover .download_options_container {
     opacity: 1;
-    pointer-events: auto; /* Makes it clickable again */
+    transform: translateY(-50%) translateX(0);
+    pointer-events: auto;
 }
-.download_options_container:hover{
-    transform: scaleX(1);
+
+/* ---- Comment toggle ---- */
+.cmt_toggle_container {
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+.cmt_toggle_btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cmt_toggle_btn.disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+}
+.cmt_toggle_btn.disabled:hover {
+    opacity: 0.35;
+}
+.cmt_icon {
+    width: 25px;
+    height: 25px;
+}
+
+/* Floating hint that follows the cursor */
+.cmt-hint,
+.page-mode-hint {
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding: 6px 10px;
+    background: rgba(20, 20, 20, 0.9);
+    color: #fff;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(calc(-100% - 12px), 12px);
+    transition: opacity 0.15s ease;
+    z-index: 1000;
+}
+.cmt-hint.visible,
+.page-mode-hint.visible {
     opacity: 1;
-    pointer-events: auto; /* Makes it clickable again */
 }

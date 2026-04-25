@@ -174,6 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------- Global buttons -----------
 
     toggleBtn.addEventListener("click", () => {
+        if (toggleBtn.classList.contains("disabled")) return;
         stateManager.toggle();
         stateManager.updateButtonLabel();
         stateManager.applyOverlayState(pageStates);
@@ -188,17 +189,90 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // ----------- Comment-mode hint tooltip (follows cursor) -----------
+    const cmtHintEl = document.querySelector(".cmt-hint");
+    if (cmtHintEl) {
+        const moveHint = (e) => {
+            cmtHintEl.style.left = `${e.clientX}px`;
+            cmtHintEl.style.top = `${e.clientY}px`;
+        };
+        toggleBtn.addEventListener("mouseenter", (e) => {
+            if (!toggleBtn.classList.contains("disabled")) return;
+            cmtHintEl.classList.add("visible");
+            moveHint(e);
+        });
+        toggleBtn.addEventListener("mousemove", (e) => {
+            if (!toggleBtn.classList.contains("disabled")) return;
+            moveHint(e);
+        });
+        toggleBtn.addEventListener("mouseleave", () => {
+            cmtHintEl.classList.remove("visible");
+        });
+    }
+
+    // Hide bubbles and disable comment mode when entering dual-page mode;
+    // restore when leaving. Kept in a helper so the toggle handler stays terse.
+    const pagesContainerEl = document.querySelector(".pages_container");
+    const applyDualPageCommentState = () => {
+        const dual = dualPageManager.isDualPage();
+        if (pagesContainerEl) {
+            pagesContainerEl.classList.toggle("dual-page-active", dual);
+        }
+        if (dual) {
+            stateManager.setCommentMode(false);
+            toggleBtn.classList.add("disabled");
+        } else {
+            stateManager.setCommentMode(true);
+            toggleBtn.classList.remove("disabled");
+            if (cmtHintEl) cmtHintEl.classList.remove("visible");
+        }
+        stateManager.updateButtonLabel();
+        stateManager.applyOverlayState(pageStates);
+    };
+
+    // ----------- Page-mode hint tooltip (follows cursor) -----------
+    const pageModeHintEl = document.querySelector(".page-mode-hint");
+    const updatePageModeHintText = () => {
+        if (!pageModeHintEl) return;
+        pageModeHintEl.textContent = dualPageManager.isDualPage()
+            ? "Đọc với trang đơn"
+            : "Đọc với trang đôi";
+    };
+    updatePageModeHintText();
+    if (pageModeHintEl && dualPageBtn) {
+        const movePageModeHint = (e) => {
+            pageModeHintEl.style.left = `${e.clientX}px`;
+            pageModeHintEl.style.top = `${e.clientY}px`;
+        };
+        dualPageBtn.addEventListener("mouseenter", (e) => {
+            pageModeHintEl.classList.add("visible");
+            movePageModeHint(e);
+        });
+        dualPageBtn.addEventListener("mousemove", movePageModeHint);
+        dualPageBtn.addEventListener("mouseleave", () => {
+            pageModeHintEl.classList.remove("visible");
+        });
+    }
+
     // Dual page mode toggle
     if (dualPageBtn) {
         dualPageBtn.addEventListener("click", () => {
             dualPageManager.toggle();
             dualPageManager.applyLayout();
+            applyDualPageCommentState();
+            updatePageModeHintText();
 
-            // Update button state
+            // Swap icons
+            const singleIcon = dualPageBtn.querySelector('.page_mode_icon.single');
+            const dualIcon = dualPageBtn.querySelector('.page_mode_icon.dual');
             if (dualPageManager.isDualPage()) {
                 dualPageBtn.classList.add("active");
+                if (singleIcon) singleIcon.style.display = 'none';
+                if (dualIcon) dualIcon.style.display = '';
             } else {
                 dualPageBtn.classList.remove("active");
+                if (singleIcon) singleIcon.style.display = '';
+                if (dualIcon) dualIcon.style.display = 'none';
             }
         });
     }
