@@ -1,9 +1,16 @@
+/* Hide all bubbles when dual-page mode is active */
+.pages_container.dual-page-active .comment-bubble {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 /* =========================
    Comment Bubble (Smooth, no flicker)
    ========================= */
 
 /* Each comment bubble: positioned according to yPct over total height */
 .comment-bubble {
+    /* --comment-buble-size: calc(30px * var(--zoom-level, 1)); */
     --comment-buble-size: 30px;
 
     position: absolute;
@@ -42,7 +49,7 @@
     width: var(--comment-buble-size);
     height: var(--comment-buble-size);
 
-    background: url(../assets/icons/cmt_bubble.svg);
+    background: url(../assets/icons/cmt_bubble_single.svg);
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -53,6 +60,11 @@
     transition:
         opacity 180ms ease,
         transform 260ms cubic-bezier(.2, .8, .2, 1);
+}
+
+/* Stacked: use filled bubble icon */
+.comment-bubble.bubble-stacked::before {
+    background-image: url(../assets/icons/cmt_bubble_single.svg);
 }
 
 /* Initial state when created (hidden) */
@@ -66,6 +78,127 @@
     opacity: 1;
     transform: translateY(calc(-0.5 * var(--comment-buble-size))) scale(1);
 }
+
+/* =========================
+   Count Badge (grouped bubbles)
+   ========================= */
+
+.bubble-count {
+    position: absolute;
+    /* Center in the speech-bubble body (body occupies ~y 6% to 70% of icon) */
+    top: calc(var(--comment-buble-size) * 0.45);
+    left: calc(var(--comment-buble-size) * 0.51);
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: calc(var(--comment-buble-size) * 0.36);
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity 180ms ease;
+}
+
+/* Hide count for single (non-stacked) bubbles */
+.comment-bubble:not(.bubble-stacked) .bubble-count {
+    display: none;
+}
+
+/* Hide count when bubble is expanded */
+.comment-bubble.open .bubble-count,
+.comment-bubble.closing .bubble-count {
+    opacity: 0;
+}
+
+/* Hide ALL bubbles across every page when any bubble is open globally */
+body.has-active-bubble .comment-bubble:not(.open):not(.closing) {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+}
+
+/* Lift the wrapper containing the open bubble above sibling pages so the
+   overflowing stack isn't covered by adjacent page-wrappers. */
+.page-wrapper.has-active-bubble {
+    z-index: 20;
+}
+
+/* =========================
+   Grouped Comment List
+   ========================= */
+
+.comment-group-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.comment-group-item {
+    padding: 8px 0;
+    opacity: 0;
+    transform: translateX(16px);
+    will-change: transform, opacity;
+    transition:
+        opacity 200ms ease,
+        transform 360ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.comment-group-item + .comment-group-item {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Reveal items when bubble is open */
+.comment-bubble.open .comment-group-item {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Hide items during close */
+.comment-bubble.closing .comment-group-item {
+    opacity: 0;
+    transform: translateX(8px);
+    transition: opacity 160ms ease, transform 160ms ease;
+}
+
+/* Inner items inherit existing text/meta styles */
+.comment-group-item .comment-author {
+    display: block;
+    font-size: 1rem;
+    font-weight: normal;
+    margin-bottom: -0.6rem;
+}
+
+.comment-group-item .comment-text {
+    padding-left: calc(var(--comment-buble-size) + 20px);
+    white-space: normal;
+    /* Force wrap for long unbreakable strings (no spaces) so they don't
+       render as a single clipped line. */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    overflow: visible;
+    max-width: var(--bubble-max-width, calc(50vw - 220px));
+    font-size: 1rem;
+    color: #fff;
+}
+
+.comment-group-item .comment-elapsed-time {
+    margin-top: 6px;
+    padding-left: calc(var(--comment-buble-size) + 20px);
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+
+
+/* When open, show inner content too */
+.comment-bubble.open .comment-group-item .comment-author,
+.comment-bubble.open .comment-group-item .author-underline,
+.comment-bubble.open .comment-group-item .comment-text,
+.comment-bubble.open .comment-group-item .comment-elapsed-time {
+    opacity: 1;
+    transform: translateX(0);
+}
+
 
 /* =========================
    Content (hidden by default)
@@ -102,7 +235,7 @@
 }
 
 .author-underline {
-    margin-top: 8px;
+    margin-top: calc(3px * var(--zoom-level, 1));
     height: 20px;
     width: 100%;
     background: linear-gradient(
@@ -126,7 +259,7 @@
         rgba(var(--rgb), 0.5) 75%,
         rgba(var(--rgb), 0) 100%
     );
-    margin-top: 25px;
+    margin-top: calc(var(--comment-buble-size) * 0.83);
 }
 
 .comment-bubble .comment-elapsed-time {
@@ -140,9 +273,18 @@
    ========================= */
 
 .comment-bubble.open {
-    /* Smoothly expand container without snapping */
-    max-width: 22vw;      /* adjust as desired */
-    max-height: 1000px;     /* big enough for long comments */
+    /* Smoothly expand container without snapping.
+       width: max-content bypasses the abspos shrink-to-fit clamp that would
+       otherwise cap the bubble at its containing block (the 260px panel).
+       --bubble-max-width is set per .page-wrapper by layout.js based on the
+       measured gap between the page and the toolbar (or viewport edge, for
+       left-facing bubbles in dual-page mode). The calc() fallback kicks in
+       if JS hasn't run yet; it tracks the single-page geometry only. */
+    width: max-content;
+    max-width: var(--bubble-max-width, calc(50vw - 220px));
+    /* Let the stack grow freely past the page's bottom edge. */
+    max-height: 10000px;
+    z-index: 10;
 
     /* subtle open motion: anchored + tiny drop */
     transform:
@@ -159,7 +301,7 @@
 /* Reveal content */
 .comment-bubble.open .comment-author {
     display: block;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: bold;
 
     opacity: 1;
@@ -177,7 +319,11 @@
 
 .comment-bubble.open .comment-text {
     white-space: normal;
-    max-width: 20vw;
+    /* Force wrap on long unbreakable strings + stop clipping overflow */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    overflow: visible;
+    max-width: var(--bubble-max-width, calc(50vw - 220px));
     width: 100%;
     font-size: 1rem;
 
@@ -188,6 +334,7 @@
 .comment-bubble.open .comment-elapsed-time {
     opacity: 1;
     transform: translateX(0);
+    font-size: 0.8rem;
 }
 
 /* =========================
@@ -306,3 +453,49 @@
 .left-page .comment-bubble.closing .comment-elapsed-time {
     transform: translateX(-8px);
 }
+
+/* Count badge for left-page: re-center (icon is right-anchored) */
+.left-page .bubble-count {
+    left: auto;
+    right: 50%;
+    transform: translate(50%, -50%);
+}
+
+/* Group items mirrored for left page */
+.left-page .comment-group-item {
+    text-align: right;
+    transform: translateX(-16px);
+}
+
+.left-page .comment-group-item .comment-text {
+    padding-left: 0;
+    padding-right: calc(var(--comment-buble-size) + 20px);
+    text-align: right;
+}
+
+.left-page .comment-group-item .comment-elapsed-time {
+    padding-left: 0;
+    padding-right: calc(var(--comment-buble-size) + 20px);
+    text-align: right;
+}
+
+
+
+.left-page .comment-group-item .comment-meta {
+    margin-left: auto;
+}
+
+.left-page .comment-group-item .author-underline {
+    margin-left: auto;
+}
+
+/* Reveal group items in left page */
+.left-page .comment-bubble.open .comment-group-item {
+    transform: translateX(0);
+}
+
+/* Closing group items in left page */
+.left-page .comment-bubble.closing .comment-group-item {
+    transform: translateX(-8px);
+}
+

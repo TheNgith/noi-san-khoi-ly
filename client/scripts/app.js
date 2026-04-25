@@ -4,8 +4,8 @@
  */
 
 import { fetchCommentsForImage, saveComment } from './api.js';
-import { addBubbleAnimated } from './bubble.js';
-import { syncPanelHeight, waitForImage } from './layout.js';
+import { addBubbleAnimated, addGroupedBubblesAnimated, rerenderBubbles } from './bubble.js';
+import { syncPanelHeight, waitForImage, updateBubbleMaxWidths } from './layout.js';
 import { createStateManager } from './state.js';
 import { createDualPageManager } from './dualPage.js';
 import { createZoomManager } from './zoom.js';
@@ -76,7 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize zoom manager
     const zoomManager = createZoomManager(zoomInBtn, zoomOutBtn, zoomPercentDisplay);
 
-    // Helper to sync all panel heights
+    // Helper to sync all panel heights (and re-measure bubble widths, since
+    // anything that moves panels also changes the bubble → toolbar gap)
     const syncAllPanelHeights = () => {
         const allPageWrappers = document.querySelectorAll(".page-wrapper");
         allPageWrappers.forEach((wrapper) => {
@@ -86,16 +87,48 @@ document.addEventListener("DOMContentLoaded", () => {
                 syncPanelHeight(page, commentPanel);
             }
         });
+        updateBubbleMaxWidths();
     };
 
     // Re-sync panel heights after layout changes
     dualPageManager.onLayoutChange(syncAllPanelHeights);
 
-    // Re-sync panel heights after zoom changes
+    // Re-sync panel heights and regroup bubbles after zoom changes
     zoomManager.onZoomChange(() => {
+        // ── Capture scroll anchor before layout changes ──
+        const scrollEl = document.scrollingElement || document.documentElement;
+        let anchorWrapper = null;
+        let anchorFraction = 0;
+
+        for (const p of pageStates) {
+            const rect = p.wrapper.getBoundingClientRect();
+            const wrapperMid = rect.top + rect.height / 2;
+            if (!anchorWrapper || Math.abs(wrapperMid - window.innerHeight / 2) <
+                Math.abs(anchorWrapper.getBoundingClientRect().top + anchorWrapper.getBoundingClientRect().height / 2 - window.innerHeight / 2)) {
+                anchorWrapper = p.wrapper;
+            }
+        }
+
+        if (anchorWrapper) {
+            const anchorRect = anchorWrapper.getBoundingClientRect();
+            anchorFraction = (window.innerHeight / 2 - anchorRect.top) / anchorRect.height;
+        }
+
         // Use requestAnimationFrame to wait for width transition to apply
         requestAnimationFrame(() => {
-            setTimeout(syncAllPanelHeights, 300); // Wait for transition
+            setTimeout(() => {
+                syncAllPanelHeights();
+                // Re-render bubbles with new slice count (panel height changed)
+                pageStates.forEach((p) => rerenderBubbles(p));
+
+                // ── Restore scroll position ──
+                if (anchorWrapper) {
+                    const newRect = anchorWrapper.getBoundingClientRect();
+                    const targetTop = newRect.top + anchorFraction * newRect.height;
+                    const scrollCorrection = targetTop - window.innerHeight / 2;
+                    scrollEl.scrollTop += scrollCorrection;
+                }
+            }, 300); // Wait for transition
         });
     });
 
@@ -285,25 +318,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 2) Sync heights for each page's comment panel
         pageStates.forEach((p) => syncPanelHeight(p.page, p.commentPanel));
+        updateBubbleMaxWidths();
         stateManager.updateButtonLabel();
         stateManager.applyOverlayState(pageStates);
 
         // 3) Fetch and animate comments for each page
         for (const pageState of pageStates) {
             const comments = await fetchCommentsForImage(pageState.imageId);
-
-            comments
-                .slice()
-                .sort((a, b) => (a.yPct ?? 0) - (b.yPct ?? 0))
-                .forEach((comment, idx) => {
-                    const delay = 150 + idx * 90;
-                    addBubbleAnimated(pageState, comment, delay);
-                });
+            addGroupedBubblesAnimated(pageState, comments);
         }
 
         // 4) Keep panel heights in sync on resize
         window.addEventListener("resize", () => {
             pageStates.forEach((p) => syncPanelHeight(p.page, p.commentPanel));
+            // Defer one frame so layout is settled before measuring
+            requestAnimationFrame(() => updateBubbleMaxWidths());
         });
     }
 
