@@ -1,25 +1,38 @@
 @import url(colors.css);
 
+/* Figma "Frame 24": 1512 × 114, shared by every screen */
+:root {
+    --navbar-height: 114px; /* design px — use inside zoomed UI */
+    --navbar-height-visual: calc(var(--navbar-height) * var(--ui-scale));
+}
+
 .logo {
-    height: 45px;
+    display: block;
+    height: 83px;
 }
 
 .navbar {
     display: flex;
     gap: 20px;
-    margin-top: 10px;
-    padding: 0px 20px;
-    height: fit-content;
-    align-items: center;
+    padding: 17px 28px 0 22px;
+    height: var(--navbar-height);
+    align-items: flex-start;
     justify-content: space-between;
+    zoom: var(--ui-scale);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     position: sticky;
     top: 0;
     z-index: 1000;
     background-color: #000;
-    padding-top: 0px;
     transform: translateY(0);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, background-color 0.2s ease;
     will-change: transform;
+}
+
+/* Over the cover the navbar is see-through, so the cover can rise into it */
+.navbar.over-cover {
+    background-color: transparent;
 }
 
 .navbar.curled {
@@ -28,7 +41,8 @@
 
 .button_container {
     display: flex;
-    gap: 30px;
+    gap: 40px;
+    margin-top: 6px;
     width: fit-content;
 }
 
@@ -39,15 +53,17 @@
 .link_title_navbar {
     position: relative;
     z-index: 1;
-    font-size: 1.2rem;
-    font-weight:350;
+    margin: 0 3px 0 4px;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: normal;
     width: fit-content;
 }
 
 .link_underline_navbar {
-    top: -0.8rem; /* move up to overlap previous */
+    top: -13px; /* move up to overlap previous */
     z-index: 2; /* make sure it’s on top */
-    height: 30px;
+    height: 31px;
     position: relative;
     width: auto;
 
@@ -61,3 +77,30 @@
     );
 }
 
+
+.navbar a {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Reader page on phones: a smaller bar with just the logo */
+@media (max-width: 760px) {
+    .page-reader {
+        --nav-h: 64px;
+    }
+
+    .page-reader .navbar {
+        zoom: 1;
+        height: var(--nav-h);
+        padding: 10px 16px 0;
+    }
+
+    .page-reader .logo {
+        height: 44px;
+    }
+
+    .page-reader .button_container {
+        display: none;
+    }
+}
