@@ -1,10 +1,13 @@
 /**
- * Book manifest: chapter colours, contents order and the scanned pages.
+ * Book manifest: chapter colours, contents order and the pages.
  *
- * `n` is the printed page number from each page's footer. It decides
+ * The pages come from pages.gen.js, generated from the book PDF by
+ * tools/pages/build.mjs. `n` is the printed page number. It decides
  * dual-page pairing (even = left, odd = right, as printed) and the
- * #trang-N links. A page's `src` is also its comment imageId.
+ * #trang-N links. A page's `id` ("p023") is its comment imageId.
  */
+
+import { BOOK_SECTIONS, BOOK_PAGES, PAGE_W, PAGE_H } from "./pages.gen.js";
 
 // Colours match colors.css (k9699 … k1922)
 export const CHAPTERS = [
@@ -24,26 +27,27 @@ export const SECTIONS = [
     ["Thầy Hoàng", "91,116,134"], ["Đội tuyển Lý", "0,65,95"], ["Trung Thu", "254,195,17"],
 ];
 
-const SCAN = [1748, 2480];
-const page = (src, n, [w, h] = SCAN) => ({ src: `assets/images/chapters/${src}`, n, w, h });
-const pair = (code, first) => [page(`${code}/${code}.jpg`, first), page(`${code}/${code}2.jpg`, first + 1)];
-
-export const PAGES = {
-    "9699": [1, 2, 3, 4, 5, 6, 7, 8].map((i) => page(`9699/${i}.png`, 7 + i, [720, 1024])),
-    "9700": pair("9700", 18),
-    "9801": pair("9801", 24),
-    "9902": pair("9902", 30),
-    "0003": pair("0003", 38),
-    "0104": pair("0104", 50),
-    "0205": pair("0205", 52),
-    "0306": pair("0306", 54),
-    "0407": pair("0407", 68),
-    "0508": pair("0508", 78),
-    "0609": pair("0609", 88),
-    "0710": pair("0710", 100),
-};
-
+// Front matter and Lời kết have no colour of their own
+const NEUTRAL = "120,120,120";
+const sectionRgb = Object.fromEntries(SECTIONS);
 export const rgbOf = Object.fromEntries(CHAPTERS);
+
+/**
+ * The book in reading order: one block per section of the PDF (front
+ * matter, the 24 classes, the teacher/team sections, Lời kết).
+ * `name` is how a page is labelled in the reader ("L9699", "Thầy Phúc").
+ */
+export const BLOCKS = BOOK_SECTIONS.map(({ key, label, kind }) => ({
+    key, label, kind,
+    name: kind === "class" ? "L" + key : label,
+    rgb: (kind === "class" ? rgbOf[key] : sectionRgb[label]) ?? NEUTRAL,
+    pages: BOOK_PAGES.filter((p) => p.sec === key).map(({ id, n, src }) => ({ id, n, src, w: PAGE_W, h: PAGE_H })),
+}));
+
+export const PAGE_RATIO = PAGE_W / PAGE_H;
+
+// Pages by section key, e.g. PAGES["9699"]
+export const PAGES = Object.fromEntries(BLOCKS.map((b) => [b.key, b.pages]));
 
 // "9699" → "1996–1999"
 export function years(code) {

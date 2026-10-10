@@ -265,7 +265,7 @@ export function openCluster(g, { scroll = true, instant = false } = {}) {
     if (isMobile()) {
         const wrap = el("div", "comment-thread in-sheet" + (instant ? " instant" : ""));
         buildThread(g, wrap);
-        openSheet(wrap, g.page.rgb, `Trang ${g.page.n} · L${g.page.ch} · ${g.items.length} bình luận`);
+        openSheet(wrap, g.page.rgb, `Trang ${g.page.n} · ${g.page.name} · ${g.items.length} bình luận`);
         if (scroll) scrollToY(g.page, g.y, 0.2);
     } else {
         const th = $(".comment-thread", g.bubble);
@@ -452,7 +452,7 @@ export function openComposer(p, x, y) {
         store.set("l9622-cls", k);
         const c = {
             id: "local-" + Date.now().toString(36), page: p.id, x, y,
-            author: nm, cls: k, chapter: "k" + p.ch,
+            author: nm, cls: k, chapter: p.kind === "class" ? "k" + p.ch : p.ch,
             text, created: Date.now(), status: "pending",
         };
         comments.push(c);

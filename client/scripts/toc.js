@@ -5,7 +5,7 @@
  * hands its colour over to its name, beside where the stripe was.
  */
 
-import { CHAPTERS, COVER_CLASSES, SECTIONS, PAGES } from "./book.js";
+import { BLOCKS, COVER_CLASSES, PAGES } from "./book.js";
 import { $, el, isMobile } from "./dom.js";
 import { state } from "./state.js";
 import { gotoChapter } from "./navigation.js";
@@ -13,10 +13,13 @@ import { gotoChapter } from "./navigation.js";
 const OPEN_DELAY = 170;  // ms the pointer must rest before the names unfold
 const CLOSE_DELAY = 240;
 
-const ROWS = [{ label: "Lời nói đầu" }, { label: "Phỏng vấn" }]
-    .concat(CHAPTERS.map(([code, rgb]) => ({ key: code, label: code, rgb, live: !!PAGES[code], cohort: COVER_CLASSES.includes(code) })))
-    .concat(SECTIONS.map(([label, rgb]) => ({ label, rgb })))
-    .concat([{ label: "Lời kết" }]);
+// One row per section of the book; front matter and Lời kết stay untinted
+const ROWS = BLOCKS.map(({ key, label, kind, rgb, pages }) => ({
+    key, label,
+    rgb: kind === "class" || kind === "section" ? rgb : null,
+    live: pages.length > 0,
+    cohort: COVER_CLASSES.includes(key),
+}));
 const rowByChapter = {};
 
 let spine, rowsEl, openT = null, closeT = null;

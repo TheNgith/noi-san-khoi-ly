@@ -166,7 +166,7 @@ export function initCover() {
     const resume = last && last !== pages[0] ? last : null;
     if (resume) {
         $(".cue-main-text").textContent = "Đọc tiếp";
-        $(".cue-sub").textContent = `trang ${resume.n} · L${resume.ch}`;
+        $(".cue-sub").textContent = `trang ${resume.n} · ${resume.name}`;
         $(".cue-alt").hidden = false;
     }
     $(".cue-main").addEventListener("click", () => scrollToPage(resume || pages[0]));

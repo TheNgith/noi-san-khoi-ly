@@ -4,7 +4,7 @@
  * zoom) and switches between the single column and dual-page spreads.
  */
 
-import { CHAPTERS, PAGES, years } from "./book.js";
+import { BLOCKS, PAGE_RATIO, years } from "./book.js";
 import { $, el, isMobile, reduced } from "./dom.js";
 import { state, pages, pageById } from "./state.js";
 import { renderAll, closeThread, closeComposer, hideTrace, clearPreview, observeUnrevealed } from "./comments.js";
@@ -27,23 +27,23 @@ const READER_PAD = 32 + 104; // body gutters + reader padding (spine, toolbar)
  */
 export function buildReader() {
     const reader = $("#reader");
-    CHAPTERS.filter(([code]) => PAGES[code]).forEach(([code, rgb]) => {
+    BLOCKS.forEach(({ key: code, kind, name, rgb, pages: blockPages }, b) => {
         const sec = el("section", "chapter-block");
         sec.id = "chapter-" + code;
         sec.style.setProperty("--rgb", rgb);
         const spreads = {};
-        PAGES[code].forEach(({ src, n, w, h }, i) => {
+        blockPages.forEach(({ id, src, n, w, h }, i) => {
             const row = el("div", "page-row");
-            row.dataset.page = src;
+            row.dataset.page = id;
             const paper = el("div", "page-paper");
-            paper.dataset.page = src;
+            paper.dataset.page = id;
             paper.style.setProperty("--ar", `${w} / ${h}`);
             const img = el("img");
             img.src = src;
             img.width = w;
             img.height = h;
-            img.alt = `Trang ${n}, phỏng vấn L${code}, niên khoá ${years(code)}`;
-            img.loading = i < 2 && code === "9699" ? "eager" : "lazy";
+            img.alt = kind === "class" ? `Trang ${n}, phỏng vấn ${name}, niên khoá ${years(code)}` : `Trang ${n}, ${name}`;
+            img.loading = b === 0 && i < 2 ? "eager" : "lazy";
             img.decoding = "async";
             img.draggable = false;
             const anchor = el("div", "page-anchor");
@@ -63,14 +63,14 @@ export function buildReader() {
             const sp = spreads[key], side = n % 2 === 0 ? "l" : "r";
 
             const p = {
-                id: src, ch: code, rgb, w, h, n, idx: i,
+                id, ch: code, kind, name, rgb, w, h, n, idx: i,
                 paper, anchor, dots, margin, box: row,
                 single: { row, margin },
                 dualSlot: { spread: sp, side, slot: $(".slot-" + side, sp), margin: $(".margin-" + side, sp) },
                 clusters: [], revealed: false,
             };
             pages.push(p);
-            pageById[src] = p;
+            pageById[id] = p;
         });
         Object.values(spreads).forEach((sp) => sec.append(sp));
         reader.append(sec);
@@ -82,7 +82,7 @@ export function buildReader() {
 export function measure() {
     const vw = document.documentElement.clientWidth;
     if (isMobile()) { state.pageW = Math.max(200, vw - 32); return; }
-    state.fitH = Math.max(240, (innerHeight - 64) * 720 / 1024);
+    state.fitH = Math.max(240, (innerHeight - 64) * PAGE_RATIO);
     state.maxW = state.dual
         ? Math.max(240, (vw - READER_PAD - 2 * (BUBBLE_MARGIN + SPREAD_GAP) - 8) / 2)
         : Math.max(280, vw - READER_PAD - 2 * (BUBBLE_MARGIN + GAP) - 8);
