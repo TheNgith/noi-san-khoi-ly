@@ -1,0 +1,12 @@
+{
+  "name": "l9622-tools",
+  "private": true,
+  "type": "module",
+  "description": "Build scripts for the book pages; see the header of pages/build.mjs",
+  "scripts": {
+    "pages": "node pages/build.mjs"
+  },
+  "devDependencies": {
+    "svgo": "^4.1.0"
+  }
+}

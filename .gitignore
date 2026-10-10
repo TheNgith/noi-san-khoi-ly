@@ -1,3 +1,7 @@
 */node_modules/
 .DS_Store
 to-do.md
+# The book PDF stays local (the repo is public); tools/pages/build.mjs reads it
+*.pdf
+# Build cache: word boxes per page
+tools/pages/text/

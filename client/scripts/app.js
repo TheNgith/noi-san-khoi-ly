@@ -3,14 +3,17 @@
  * Coordinates all modules and handles initialization
  */
 
-import { fetchCommentsForImage, saveComment } from './api.js';
+import { fetchAllComments, saveComment } from './api.js';
 import { addBubbleAnimated, addGroupedBubblesAnimated, rerenderBubbles } from './bubble.js';
-import { syncPanelHeight, waitForImage, updateBubbleMaxWidths } from './layout.js';
+import { syncPanelHeight, updateBubbleMaxWidths } from './layout.js';
 import { createStateManager } from './state.js';
 import { createDualPageManager } from './dualPage.js';
 import { createZoomManager } from './zoom.js';
+import { buildPages } from './buildPages.js';
 
 document.addEventListener("DOMContentLoaded", () => {
+    buildPages();
+
     const toggleBtn = document.getElementById("toggleOverlayBtn");
     const dualPageBtn = document.querySelector(".dual_page_toggler");
     const zoomInBtn = document.querySelector(".zoom_in_btn");
@@ -146,16 +149,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 return null;
             }
 
-            // Use full image path as unique identifier
-            const imageId = page.getAttribute("src");
+            // Page id ("p023", from its printed page number) keys its comments
+            const imageId = page.dataset.pageId;
 
-            // Get chapter class from parent comment-block
-            const commentBlock = wrapper.closest(".comment-block");
-            const chapterClass = commentBlock
-                ? [...commentBlock.classList]
-                    .find((c) => c.startsWith("k") && c.includes("_"))
-                    ?.split("_")[0]
-                : "default";
+            // Chapter colour class, set on the parent comment-block
+            const chapterClass = wrapper.closest(".comment-block")?.dataset.chapter ?? "default";
 
             // Click handler for this page's overlay
             overlay.addEventListener("click", async (e) => {
@@ -313,8 +311,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // ----------- Init -----------
 
     async function init() {
-        // 1) Wait for all images to load so heights are stable
-        await Promise.all(pageStates.map((p) => waitForImage(p.page)));
+        // 1) Pages are lazy-loaded; their width/height attributes already
+        //    give each one its final height, so there's no need to wait.
 
         // 2) Sync heights for each page's comment panel
         pageStates.forEach((p) => syncPanelHeight(p.page, p.commentPanel));
@@ -322,10 +320,13 @@ document.addEventListener("DOMContentLoaded", () => {
         stateManager.updateButtonLabel();
         stateManager.applyOverlayState(pageStates);
 
-        // 3) Fetch and animate comments for each page
+        // 3) Fetch every comment at once, then animate each page's
+        const byPage = new Map();
+        for (const c of await fetchAllComments()) {
+            byPage.set(c.imageId, [...(byPage.get(c.imageId) ?? []), c]);
+        }
         for (const pageState of pageStates) {
-            const comments = await fetchCommentsForImage(pageState.imageId);
-            addGroupedBubblesAnimated(pageState, comments);
+            addGroupedBubblesAnimated(pageState, byPage.get(pageState.imageId) ?? []);
         }
 
         // 4) Keep panel heights in sync on resize

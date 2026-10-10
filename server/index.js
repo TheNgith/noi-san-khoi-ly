@@ -48,24 +48,14 @@ async function writeComments(comments) {
   await fs.writeFile(DATA_FILE, json, "utf8");
 }
 
-// GET /api/comments?imageId=...
-// Returns list of comments for that image
+// GET /api/comments            → every comment (the reader loads the book at once)
+// GET /api/comments?imageId=... → comments for one page
 app.get("/api/comments", async (req, res) => {
   try {
     const imageId = req.query.imageId;
-
-    if (!imageId) {
-      return res
-        .status(400)
-        .json({ error: "Missing required query parameter: imageId" });
-    }
-
     const allComments = await readComments();
-    const filtered = allComments.filter(
-      (c) => c.imageId === imageId
-    );
 
-    res.json(filtered);
+    res.json(imageId ? allComments.filter((c) => c.imageId === imageId) : allComments);
   } catch (err) {
     console.error("Error in GET /api/comments:", err);
     res.status(500).json({ error: "Internal server error" });
