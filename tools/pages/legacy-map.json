@@ -1,0 +1,36 @@
+{
+    "_doc": "Old page images (the comment imageId before 2026-10-10) → printed page in all4t10don.pdf. Found by comparing thumbnails against every PDF page; each chapter's two images are its first two pages. The 9699 PNGs are an earlier draft with reflowed text, so 3 and 5 were matched by their text and their comments' yPct only roughly fits; 6-8 match no page well and had no comments.",
+    "pages": {
+        "assets/images/chapters/9699/1.png": 14,
+        "assets/images/chapters/9699/2.png": 15,
+        "assets/images/chapters/9699/3.png": 16,
+        "assets/images/chapters/9699/4.png": 17,
+        "assets/images/chapters/9699/5.png": 19,
+        "assets/images/chapters/9700/9700.jpg": 24,
+        "assets/images/chapters/9700/97002.jpg": 25,
+        "assets/images/chapters/9801/9801.jpg": 30,
+        "assets/images/chapters/9801/98012.jpg": 31,
+        "assets/images/chapters/9902/9902.jpg": 36,
+        "assets/images/chapters/9902/99022.jpg": 37,
+        "assets/images/chapters/0003/0003.jpg": 44,
+        "assets/images/chapters/0003/00032.jpg": 45,
+        "assets/images/chapters/0104/0104.jpg": 56,
+        "assets/images/chapters/0104/01042.jpg": 57,
+        "assets/images/chapters/0205/0205.jpg": 58,
+        "assets/images/chapters/0205/02052.jpg": 59,
+        "assets/images/chapters/0306/0306.jpg": 60,
+        "assets/images/chapters/0306/03062.jpg": 61,
+        "assets/images/chapters/0407/0407.jpg": 74,
+        "assets/images/chapters/0407/04072.jpg": 75,
+        "assets/images/chapters/0508/0508.jpg": 84,
+        "assets/images/chapters/0508/05082.jpg": 85,
+        "assets/images/chapters/0609/0609.jpg": 94,
+        "assets/images/chapters/0609/06092.jpg": 95,
+        "assets/images/chapters/0710/0710.jpg": 106,
+        "assets/images/chapters/0710/07102.jpg": 107
+    },
+    "_comments_doc": "Comments placed by hand: the passage they quote is on another page or line in the final layout.",
+    "comments": {
+        "mm615u7o-zrnc4jjqvpo": { "page": 15, "yPct": 0.508 }
+    }
+}
