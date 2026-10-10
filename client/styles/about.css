@@ -1,0 +1,157 @@
+/* "Giới thiệu" page — Figma: nội san / UI / MacBook Pro 14" - 10 (1512px frame) */
+
+.page-about {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.about {
+    zoom: var(--ui-scale);
+    padding: 37px 20px 200px;
+    font-family: "Inter", sans-serif;
+    color: #fff;
+}
+
+.about_lead,
+.about_class_lead {
+    font-family: "Inter", sans-serif;
+    font-size: 48px;
+    letter-spacing: -0.04em;
+    line-height: 1.21; /* Figma "auto" for Inter: 58px at 48px */
+}
+
+.about_lead {
+    max-width: 1462px;
+}
+
+/* Inline "L9622" mark that opens the lead sentence */
+.about_mark {
+    position: relative;
+    display: inline-block;
+    width: 97.4px;
+    height: 44px;
+    margin: 0 3px 0 1px;
+    vertical-align: baseline;
+}
+
+.about_mark_text {
+    position: absolute;
+    top: 0;
+    left: 6.4%;
+    font-family: "Archivo", sans-serif;
+    font-weight: 200;
+    font-size: 40px;
+    letter-spacing: 0;
+    line-height: normal;
+    white-space: nowrap;
+}
+
+.about_mark_bar {
+    position: absolute;
+    background: #fff;
+}
+
+.about_mark_bar--left {
+    top: 18.11%;
+    bottom: 0.79%;
+    left: 0;
+    width: 2.43px;
+}
+
+.about_mark_bar--under-l,
+.about_mark_bar--under-num {
+    bottom: 0;
+    height: 2.43px;
+}
+
+.about_mark_bar--under-l {
+    left: 0;
+    width: 24.95px;
+}
+
+.about_mark_bar--under-num {
+    left: 31.66%;
+    right: 2.53%;
+}
+
+.about_columns,
+.about_class {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 20px;
+    align-items: start;
+}
+
+.about_columns {
+    margin-top: 158px;
+}
+
+.about_body {
+    max-width: 477px;
+    font-family: "Inter", sans-serif;
+    font-size: 20px;
+    line-height: normal;
+}
+
+.about_class {
+    margin-top: 578px;
+}
+
+.about_class_lead {
+    grid-column: 1 / span 2;
+    max-width: 869px;
+}
+
+.about_class_photo {
+    grid-column: 3;
+    justify-self: end;
+    display: block;
+    width: 479px;
+    max-width: 100%;
+    margin-right: 13px;
+    aspect-ratio: 479 / 270;
+    object-fit: cover;
+    margin-top: 329px;
+}
+
+@media (max-width: 900px) {
+    .about {
+        padding-top: 24px;
+        padding-bottom: 96px;
+    }
+
+    .about_lead,
+    .about_class_lead {
+        font-size: 32px;
+    }
+
+    .about_mark {
+        transform: scale(0.67);
+        transform-origin: left bottom;
+        margin-right: -28px;
+    }
+
+    .about_columns,
+    .about_class {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: 20px;
+    }
+
+    .about_columns {
+        margin-top: 64px;
+    }
+
+    .about_class {
+        margin-top: 120px;
+    }
+
+    .about_class_lead,
+    .about_class_photo {
+        grid-column: 1;
+    }
+
+    .about_class_photo {
+        justify-self: start;
+        margin: 20px 0 0;
+    }
+}
