@@ -1,6 +1,6 @@
 /**
  * API communication module
- * Handles all fetch/save operations with the backend
+ * Loads every comment in one request and saves new ones.
  */
 
 // One request for the whole book. Without a server (e.g. the static
@@ -16,26 +16,13 @@ export async function fetchAllComments() {
     }
 }
 
+// Resolves to the stored comment, or throws so the reader can offer a retry
 export async function saveComment(comment) {
-    console.log("Saving comment:", JSON.stringify(comment));
-    try {
-        const res = await fetch("/api/comments", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(comment),
-        });
-
-        if (!res.ok) {
-            console.error(
-                "POST /api/comments failed with status",
-                res.status,
-            );
-            return null;
-        }
-
-        return await res.json();
-    } catch (err) {
-        console.error("POST /api/comments error:", err);
-        return null;
-    }
+    const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(comment),
+    });
+    if (!res.ok) throw new Error(`POST /api/comments failed with status ${res.status}`);
+    return res.json();
 }

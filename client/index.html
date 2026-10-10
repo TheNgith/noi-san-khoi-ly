@@ -2,7 +2,7 @@
 <html lang="vi">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -12,80 +12,121 @@
         <link rel="stylesheet" href="styles/global.css" />
         <link rel="stylesheet" href="styles/colors.css" />
         <link rel="stylesheet" href="styles/navbar.css" />
-        <link rel="stylesheet" href="styles/sidebar.css" />
+        <link rel="stylesheet" href="styles/cover.css" />
+        <link rel="stylesheet" href="styles/toc.css" />
         <link rel="stylesheet" href="styles/toolbar.css" />
         <link rel="stylesheet" href="styles/pages.css" />
         <link rel="stylesheet" href="styles/comments.css" />
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        />
-        <link rel="stylesheet" href="styles/cover.css" />
-        <title>Document</title>
+        <title>L9622 – Nội san khối Lý</title>
     </head>
-    <body>
-        <nav class="navbar">
-            <img src="assets/icons/logo.svg" alt="logo_noisan" class="logo" />
+    <body class="page-reader">
+        <nav class="navbar over-cover">
+            <a href="index.html"><img src="assets/icons/logo2.svg" alt="L9622, nội san khối Lý" class="logo" /></a>
             <div class="button_container">
-                <div class="link_container_navbar">
+                <a href="about.html" class="link_container_navbar">
                     <div class="link_title_navbar">Giới thiệu</div>
                     <div class="link_underline_navbar default"></div>
-                </div>
+                </a>
                 <div class="link_container_navbar">
                     <div class="link_title_navbar">Liên hệ</div>
                     <div class="link_underline_navbar default"></div>
                 </div>
             </div>
         </nav>
-        <div class="cover_container">
-            <img src="assets/icons/cover_shape.svg" alt="cover" class="cover" />
-        </div>
-        <!-- Chapters are built from scripts/pages.gen.js (buildPages.js) -->
-        <div class="pages_container"></div>
-        <div class="hover-edge" aria-hidden="true"></div>
-        <div class="sidebar-hint" aria-hidden="true">
-            <i class="fa-solid fa-chevron-right"></i>
-        </div>
-        <aside class="sidebar default">
-            <div class="link_container_navbar">
-                <div class="link_title_navbar">Mục lục</div>
-                <div class="link_underline_navbar default"></div>
+
+        <!-- Cover: its stripes are drawn by cover.js so they can fly to the contents bar -->
+        <section class="cover_container" aria-label="Bìa">
+            <div class="cover-card">
+                <img
+                    src="assets/icons/cover_shape_bare.svg"
+                    alt="Bìa L9622: Nội san khối Lý, Trường Phổ thông Năng Khiếu, L1922"
+                    class="cover-art"
+                />
+                <div class="cover-stripes"></div>
             </div>
-            <ul></ul>
-        </aside>
+            <div class="cover-label" aria-hidden="true">
+                <span class="cover-label-code"></span>
+                <span class="glow-ul glow"></span>
+                <span class="cover-label-years"></span>
+            </div>
+            <div class="cover-cue">
+                <button class="cue-main" type="button">
+                    <span class="cue-main-text">Bắt đầu đọc</span>
+                    <span class="glow-ul glow"></span>
+                </button>
+                <span class="cue-sub">hoặc chọn một khoá trên bìa</span>
+                <button class="cue-alt" type="button" hidden>Đọc từ đầu</button>
+                <svg class="cue-arrow" viewBox="0 0 18 18" fill="none" stroke="white" stroke-width="1.5" aria-hidden="true">
+                    <path d="M9 2v13M3 9l6 6 6-6" />
+                </svg>
+            </div>
+        </section>
+
+        <!-- Pages are built from scripts/book.js -->
+        <main class="pages_container" id="reader" aria-label="Nội dung sách"></main>
+
+        <div class="toc-veil"></div>
+        <nav class="toc-spine" aria-label="Mục lục">
+            <div class="toc-sheet"></div>
+            <div class="toc-title">
+                <span>Mục lục</span>
+                <span class="glow-ul glow"></span>
+            </div>
+            <div class="toc-rows"></div>
+        </nav>
+        <div class="stripe-flyer" aria-hidden="true"></div>
+
         <div class="toolbar_container">
             <div class="zoom_container">
-                <button class="zoom_in_btn">
-                    <img src="assets/icons/zoomIn.svg" alt="Zoom in" />
+                <button class="zoom_in_btn" type="button" data-hint="Phóng to (+)" aria-label="Phóng to">
+                    <img src="assets/icons/zoomIn.svg" alt="" />
                 </button>
-                <div class="zoom_percent">100%</div>
-                <button class="zoom_out_btn">
-                    <img src="assets/icons/zoomOut.svg" alt="Zoom out" />
+                <button class="zoom_percent" type="button" data-hint="Về vừa chiều cao (H)" aria-label="Mức thu phóng">100%</button>
+                <button class="zoom_out_btn" type="button" data-hint="Thu nhỏ (−)" aria-label="Thu nhỏ">
+                    <img src="assets/icons/zoomOut.svg" alt="" />
                 </button>
             </div>
-            <div class="page_mode_container">
-                <button class="dual_page_toggler">
-                    <img src="assets/icons/single_page_mode.svg" alt="Page mode" class="page_mode_icon single" />
-                    <img src="assets/icons/dual_page_mode.svg" alt="Page mode" class="page_mode_icon dual" style="display:none;" />
-                </button>
-                <div class="page-mode-hint">Đọc với trang đôi</div>
-            </div>
+            <button class="fit_btn" type="button" data-hint="Vừa chiều rộng (W)" aria-label="Vừa chiều rộng">
+                <svg class="fit_icon width" viewBox="0 0 40 40" fill="none" stroke="white" stroke-width="2">
+                    <path d="M11 5h18v30H11z" />
+                    <path d="M1 20h38M6 15l-5 5 5 5M34 15l5 5-5 5" />
+                </svg>
+                <svg class="fit_icon height" viewBox="0 0 40 40" fill="none" stroke="white" stroke-width="2" hidden>
+                    <path d="M8 10h24v20H8z" />
+                    <path d="M20 1v38M15 6l5-5 5 5M15 34l5 5 5-5" />
+                </svg>
+            </button>
+            <button class="dual_page_toggler" type="button" data-hint="Đọc với trang đôi (D)" aria-label="Đọc với trang đôi" aria-pressed="false">
+                <img src="assets/icons/single_page_mode.svg" alt="" class="page_mode_icon single" />
+                <img src="assets/icons/dual_page_mode.svg" alt="" class="page_mode_icon dual" hidden />
+            </button>
             <div class="download_container">
                 <div class="download_icon">
-                    <img src="assets/icons/download.svg" alt="Download" />
+                    <img src="assets/icons/download.svg" alt="Tải xuống" />
                 </div>
                 <div class="download_options_container">
-                    <button class="dl_thischap_btn">Tải chương này</button>
-                    <button class="dl_all_btn">Tải toàn bộ</button>
+                    <button class="dl_thischap_btn" type="button">Tải chương này</button>
+                    <button class="dl_all_btn" type="button">Tải toàn bộ</button>
                 </div>
             </div>
-            <div class="cmt_toggle_container">
-                <button id="toggleOverlayBtn" class="cmt_toggle_btn on">
-                    <img src="assets/icons/cmt_mode_on.svg" alt="Comment mode" class="cmt_icon" />
-                </button>
-                <div class="cmt-hint">Tắt chế độ trang đôi để bình luận</div>
-            </div>
+            <button class="toc_btn" type="button" aria-label="Mở mục lục">
+                <span>Mục lục</span>
+                <span class="glow-ul glow"></span>
+            </button>
+            <button class="cmt_toggle_btn" type="button" data-hint="Ẩn bình luận" aria-label="Ẩn bình luận" aria-pressed="true">
+                <img src="assets/icons/cmt_mode_on.svg" alt="" class="cmt_icon" />
+            </button>
         </div>
+
+        <div class="sheet-scrim" id="sheet-scrim"></div>
+        <div class="comment-sheet" id="comment-sheet" role="dialog" aria-label="Bình luận">
+            <div class="sheet-grip"></div>
+            <div class="sheet-bar glow"></div>
+            <div class="sheet-body"></div>
+        </div>
+        <div class="tool-hint" aria-hidden="true"></div>
+        <div class="toast" id="toast" role="status"></div>
+
         <script type="module" src="scripts/app.js"></script>
     </body>
 </html>

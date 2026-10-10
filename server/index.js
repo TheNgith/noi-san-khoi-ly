@@ -62,12 +62,20 @@ app.get("/api/comments", async (req, res) => {
   }
 });
 
+const MAX_AUTHOR = 40;
+const MAX_TEXT = 2000;
+const trimmed = (v) => (typeof v === "string" ? v.trim() : "");
+
 // POST /api/comments
-// Body: { imageId, xPct, yPct, text, author, createdAt? }
+// Body: { imageId, xPct, yPct, text, author, cls?, chapter? }
+// cls is the writer's own class, free text (e.g. "L1922"); createdAt is set here.
 app.post("/api/comments", async (req, res) => {
   try {
-    const { imageId, xPct, yPct, text, author, createdAt, chapter } = req.body;
-    console.log("Server received:", req.body);
+    const { imageId, xPct, yPct } = req.body;
+    const text = trimmed(req.body.text);
+    const author = trimmed(req.body.author);
+    const cls = trimmed(req.body.cls);
+    const chapter = trimmed(req.body.chapter);
 
     if (!imageId || typeof imageId !== "string") {
       return res.status(400).json({ error: "imageId is required" });
@@ -77,8 +85,17 @@ app.post("/api/comments", async (req, res) => {
         .status(400)
         .json({ error: "xPct and yPct must be numbers between 0 and 1" });
     }
-    if (!text || typeof text !== "string" || !text.trim()) {
+    if (!text) {
       return res.status(400).json({ error: "text is required" });
+    }
+    if (!author) {
+      return res.status(400).json({ error: "author is required" });
+    }
+    if (text.length > MAX_TEXT || author.length > MAX_AUTHOR) {
+      return res.status(400).json({ error: `author is limited to ${MAX_AUTHOR} characters and text to ${MAX_TEXT}` });
+    }
+    if (cls.length > MAX_AUTHOR) {
+      return res.status(400).json({ error: `cls is limited to ${MAX_AUTHOR} characters` });
     }
 
     const clampedX = Math.min(Math.max(xPct, 0), 1);
@@ -92,10 +109,11 @@ app.post("/api/comments", async (req, res) => {
       imageId,
       xPct: clampedX,
       yPct: clampedY,
-      text: text.trim(),
-      author: author.trim(),
-      createdAt: createdAt || new Date().toISOString(),
-      chapter: chapter.trim()
+      text,
+      author,
+      ...(cls && { cls }),
+      createdAt: new Date().toISOString(),
+      chapter
     };
 
     const comments = await readComments();

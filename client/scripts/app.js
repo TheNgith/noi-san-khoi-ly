@@ -1,341 +1,117 @@
 /**
  * Main application entry point
- * Coordinates all modules and handles initialization
+ * Builds the reader, wires the modules together and handles global input.
  */
 
-import { fetchAllComments, saveComment } from './api.js';
-import { addBubbleAnimated, addGroupedBubblesAnimated, rerenderBubbles } from './bubble.js';
-import { syncPanelHeight, updateBubbleMaxWidths } from './layout.js';
-import { createStateManager } from './state.js';
-import { createDualPageManager } from './dualPage.js';
-import { createZoomManager } from './zoom.js';
-import { buildPages } from './buildPages.js';
+import { isMobile, mqMobile } from "./dom.js";
+import { state } from "./state.js";
+import {
+    buildReader, initReader, applyLayout, captureAnchor, setZoom, zoomStep, setDual,
+    updateZoomUI, updateDualUI, updateThreadWidths,
+} from "./reader.js";
+import {
+    initComments, loadComments, closeThread, closeComposer, closeSheet, step, nextFromView,
+    openComposer, openComposerAtTrace, traceActive, clickPage, composerHasText,
+} from "./comments.js";
+import { initScroll, onScroll, routeHash } from "./navigation.js";
+import { initToc, closeToc, sizeSpine } from "./toc.js";
+import { initCover, setStage, playOpening } from "./cover.js";
+import { initToolbar } from "./toolbar.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-    buildPages();
+// Clicks outside an open thread or form close it. With nothing open, a click
+// on a page comments on that line (or opens the thread already on it).
+function onDocumentClick(e) {
+    if (Date.now() < state.guardUntil) return;
+    const t = e.target;
+    if (document.body.classList.contains("toc-open") && !t.closest(".toc-spine, .toc_btn")) closeToc();
+    if (t.closest(".comment-bubble, .comment-dot, .comment-composer, .comment-sheet, .sheet-scrim, .toolbar_container, .toc-spine, .cover_container")) return;
+    if (state.composer) {
+        if (!composerHasText()) closeComposer();
+    } else if (state.open) {
+        closeThread();
+    } else {
+        clickPage(e);
+    }
+}
 
-    const toggleBtn = document.getElementById("toggleOverlayBtn");
-    const dualPageBtn = document.querySelector(".dual_page_toggler");
-    const zoomInBtn = document.querySelector(".zoom_in_btn");
-    const zoomOutBtn = document.querySelector(".zoom_out_btn");
-    const zoomPercentDisplay = document.querySelector(".zoom_percent");
-    const pageWrappers = Array.from(document.querySelectorAll(".page-wrapper"));
-
-    if (!toggleBtn || !pageWrappers.length) {
-        console.error("Missing toggle button or .page-wrapper elements.");
+function onKeydown(e) {
+    if (e.key === "Escape") {
+        if (state.composer) closeComposer();
+        else if (state.open) closeThread();
+        else closeToc();
         return;
     }
-
-    // ----------- Sidebar slide tied to cover visibility -----------
-    const coverEl = document.querySelector(".cover_container");
-    if (coverEl) {
-        const bodyEl = document.body;
-        let restoreTransitionTimer = null;
-        const updateSidebarSlide = () => {
-            const rect = coverEl.getBoundingClientRect();
-            const h = rect.height || 1;
-            // 0 when cover fully in view (bottom >= height), 1 when cover fully out (bottom <= 0)
-            const progress = Math.min(1, Math.max(0, 1 - rect.bottom / h));
-            // Disable transition during scroll so the slide tracks 1:1 (linear).
-            // The !important hover rule in CSS still wins over this inline style.
-            bodyEl.style.transition = "none";
-            bodyEl.style.setProperty("--slide-progress", progress.toFixed(4));
-            clearTimeout(restoreTransitionTimer);
-            restoreTransitionTimer = setTimeout(() => {
-                bodyEl.style.transition = "";
-            }, 120);
-        };
-        updateSidebarSlide();
-        window.addEventListener("scroll", updateSidebarSlide, { passive: true });
-        window.addEventListener("resize", updateSidebarSlide);
-    }
-
-    // ----------- Navbar curl on scroll direction -----------
-    const navbarEl = document.querySelector(".navbar");
-    if (navbarEl) {
-        let lastScrollY = window.scrollY;
-        const SCROLL_THRESHOLD = 8; // ignore jitter
-        const TOP_OFFSET = 40; // keep uncurled near the very top
-        const updateNavbarCurl = () => {
-            const currentY = window.scrollY;
-            const delta = currentY - lastScrollY;
-            if (Math.abs(delta) < SCROLL_THRESHOLD) return;
-            if (delta > 0 && currentY > TOP_OFFSET) {
-                navbarEl.classList.add("curled");
-            } else if (delta < 0) {
-                navbarEl.classList.remove("curled");
-            }
-            lastScrollY = currentY;
-        };
-        window.addEventListener("scroll", updateNavbarCurl, { passive: true });
-    }
-
-    // Initialize state manager
-    const stateManager = createStateManager(toggleBtn);
-
-    // Initialize dual page manager
-    const dualPageManager = createDualPageManager();
-
-    // Initialize zoom manager
-    const zoomManager = createZoomManager(zoomInBtn, zoomOutBtn, zoomPercentDisplay);
-
-    // Helper to sync all panel heights (and re-measure bubble widths, since
-    // anything that moves panels also changes the bubble → toolbar gap)
-    const syncAllPanelHeights = () => {
-        const allPageWrappers = document.querySelectorAll(".page-wrapper");
-        allPageWrappers.forEach((wrapper) => {
-            const page = wrapper.querySelector("img.page");
-            const commentPanel = wrapper.querySelector(".comment-panel");
-            if (page && commentPanel) {
-                syncPanelHeight(page, commentPanel);
-            }
-        });
-        updateBubbleMaxWidths();
-    };
-
-    // Re-sync panel heights after layout changes
-    dualPageManager.onLayoutChange(syncAllPanelHeights);
-
-    // Re-sync panel heights and regroup bubbles after zoom changes
-    zoomManager.onZoomChange(() => {
-        // ── Capture scroll anchor before layout changes ──
-        const scrollEl = document.scrollingElement || document.documentElement;
-        let anchorWrapper = null;
-        let anchorFraction = 0;
-
-        for (const p of pageStates) {
-            const rect = p.wrapper.getBoundingClientRect();
-            const wrapperMid = rect.top + rect.height / 2;
-            if (!anchorWrapper || Math.abs(wrapperMid - window.innerHeight / 2) <
-                Math.abs(anchorWrapper.getBoundingClientRect().top + anchorWrapper.getBoundingClientRect().height / 2 - window.innerHeight / 2)) {
-                anchorWrapper = p.wrapper;
-            }
+    if (e.target.closest?.("input, textarea") || e.metaKey || e.ctrlKey || e.altKey || state.stage !== "reading") return;
+    const k = e.key.toLowerCase();
+    if (state.open && (e.key === "ArrowDown" || k === "j")) { e.preventDefault(); step(1); }
+    else if (state.open && (e.key === "ArrowUp" || k === "k")) { e.preventDefault(); step(-1); }
+    else if (k === "n") nextFromView();
+    else if (k === "c") {
+        // Comment on the line under the pointer, or on the reading line
+        e.preventDefault();
+        if (traceActive()) openComposerAtTrace();
+        else if (state.current) {
+            const r = state.current.paper.getBoundingClientRect();
+            openComposer(state.current, 0.5, Math.min(0.95, Math.max(0.05, (innerHeight * 0.38 - r.top) / r.height)));
         }
+    }
+    else if (e.key === "+" || e.key === "=") setZoom(zoomStep(1));
+    else if (e.key === "-" || e.key === "_") setZoom(zoomStep(-1));
+    else if (k === "w") setZoom(99);
+    else if (k === "h") setZoom(1);
+    else if (k === "d") setDual(!state.dual);
+}
 
-        if (anchorWrapper) {
-            const anchorRect = anchorWrapper.getBoundingClientRect();
-            anchorFraction = (window.innerHeight / 2 - anchorRect.top) / anchorRect.height;
-        }
+// ⌘/Ctrl + scroll (and trackpad pinch) zooms around the pointer
+function onWheel(e) {
+    if (!(e.ctrlKey || e.metaKey) || isMobile() || state.stage !== "reading") return;
+    e.preventDefault();
+    setZoom((state.pageW / state.fitH) * Math.exp(-e.deltaY * 0.0025), captureAnchor(e.clientY));
+}
 
-        // Use requestAnimationFrame to wait for width transition to apply
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                syncAllPanelHeights();
-                // Re-render bubbles with new slice count (panel height changed)
-                pageStates.forEach((p) => rerenderBubbles(p));
+document.addEventListener("DOMContentLoaded", () => {
+    const initialHash = decodeURIComponent(location.hash.slice(1));
+    try { history.scrollRestoration = "manual"; } catch { /* unsupported */ }
 
-                // ── Restore scroll position ──
-                if (anchorWrapper) {
-                    const newRect = anchorWrapper.getBoundingClientRect();
-                    const targetTop = newRect.top + anchorFraction * newRect.height;
-                    const scrollCorrection = targetTop - window.innerHeight / 2;
-                    scrollEl.scrollTop += scrollCorrection;
-                }
-            }, 300); // Wait for transition
-        });
+    buildReader();
+    initReader();
+    initToc();
+    initCover();
+    initComments();
+    initToolbar();
+    initScroll();
+    updateThreadWidths();
+    updateZoomUI();
+    updateDualUI();
+
+    document.addEventListener("click", onDocumentClick);
+    addEventListener("keydown", onKeydown);
+    addEventListener("wheel", onWheel, { passive: false });
+    let resizeTimer = null;
+    addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => { applyLayout(); sizeSpine(); }, 100);
+    });
+    mqMobile.addEventListener("change", () => {
+        closeComposer(true);
+        closeThread(true);
+        closeSheet();
+        closeToc();
+        if (isMobile()) setDual(false);
     });
 
-    // ----------- Setup each page -----------
+    // A link to a page or comment goes straight there; otherwise the book opens on its cover
+    const deepLink = initialHash.startsWith("c-") || /^trang-\d+$/.test(initialHash);
+    if (deepLink) {
+        setStage("reading", { instant: true });
+        state.stageLockUntil = Date.now() + 1800;
+    } else {
+        setStage("cover", { instant: true });
+        playOpening();
+    }
+    onScroll(true);
 
-    const pageStates = pageWrappers
-        .map((wrapper) => {
-            const pageContainer = wrapper.querySelector(".page-container");
-            const page = wrapper.querySelector("img.page");
-            const overlay = wrapper.querySelector(".comment-overlay");
-            const commentPanel = wrapper.querySelector(".comment-panel");
-
-            if (!pageContainer || !page || !overlay || !commentPanel) {
-                console.error("Missing elements inside a .page-wrapper");
-                return null;
-            }
-
-            // Page id ("p023", from its printed page number) keys its comments
-            const imageId = page.dataset.pageId;
-
-            // Chapter colour class, set on the parent comment-block
-            const chapterClass = wrapper.closest(".comment-block")?.dataset.chapter ?? "default";
-
-            // Click handler for this page's overlay
-            overlay.addEventListener("click", async (e) => {
-                if (!stateManager.getCommentMode()) return;
-
-                const rect = page.getBoundingClientRect();
-                const clickX = e.clientX;
-                const clickY = e.clientY;
-
-                const xPct = (clickX - rect.left) / rect.width;
-                const yPct = (clickY - rect.top) / rect.height;
-
-                const author = prompt("Your name:");
-                if (!author || !author.trim()) return;
-
-                const text = prompt("Type your comment:");
-                if (!text) return;
-
-                const newComment = {
-                    imageId,
-                    xPct,
-                    yPct,
-                    text: text.trim(),
-                    author: author.trim(),
-                    createdAt: new Date().toISOString(),
-                    chapter: chapterClass,
-                };
-
-                // Animate new comment
-                addBubbleAnimated(
-                    { commentPanel },
-                    newComment,
-                    0,
-                );
-                await saveComment(newComment);
-            });
-
-            return {
-                wrapper,
-                pageContainer,
-                page,
-                overlay,
-                commentPanel,
-                imageId,
-            };
-        })
-        .filter(Boolean);
-
-    // ----------- Global buttons -----------
-
-    toggleBtn.addEventListener("click", () => {
-        if (toggleBtn.classList.contains("disabled")) return;
-        stateManager.toggle();
-        stateManager.updateButtonLabel();
-        stateManager.applyOverlayState(pageStates);
+    loadComments().then(() => {
+        if (deepLink) requestAnimationFrame(() => routeHash(initialHash));
     });
-
-    // Disable comment mode when bubbles are hidden in dual-page mode
-    zoomManager.onHideBubblesChange((shouldHide) => {
-        if (shouldHide && dualPageManager.isDualPage()) {
-            stateManager.setCommentMode(false);
-            stateManager.updateButtonLabel();
-            stateManager.applyOverlayState(pageStates);
-        }
-    });
-
-    // ----------- Comment-mode hint tooltip (follows cursor) -----------
-    const cmtHintEl = document.querySelector(".cmt-hint");
-    if (cmtHintEl) {
-        const moveHint = (e) => {
-            cmtHintEl.style.left = `${e.clientX}px`;
-            cmtHintEl.style.top = `${e.clientY}px`;
-        };
-        toggleBtn.addEventListener("mouseenter", (e) => {
-            if (!toggleBtn.classList.contains("disabled")) return;
-            cmtHintEl.classList.add("visible");
-            moveHint(e);
-        });
-        toggleBtn.addEventListener("mousemove", (e) => {
-            if (!toggleBtn.classList.contains("disabled")) return;
-            moveHint(e);
-        });
-        toggleBtn.addEventListener("mouseleave", () => {
-            cmtHintEl.classList.remove("visible");
-        });
-    }
-
-    // Hide bubbles and disable comment mode when entering dual-page mode;
-    // restore when leaving. Kept in a helper so the toggle handler stays terse.
-    const pagesContainerEl = document.querySelector(".pages_container");
-    const applyDualPageCommentState = () => {
-        const dual = dualPageManager.isDualPage();
-        if (pagesContainerEl) {
-            pagesContainerEl.classList.toggle("dual-page-active", dual);
-        }
-        if (dual) {
-            stateManager.setCommentMode(false);
-            toggleBtn.classList.add("disabled");
-        } else {
-            stateManager.setCommentMode(true);
-            toggleBtn.classList.remove("disabled");
-            if (cmtHintEl) cmtHintEl.classList.remove("visible");
-        }
-        stateManager.updateButtonLabel();
-        stateManager.applyOverlayState(pageStates);
-    };
-
-    // ----------- Page-mode hint tooltip (follows cursor) -----------
-    const pageModeHintEl = document.querySelector(".page-mode-hint");
-    const updatePageModeHintText = () => {
-        if (!pageModeHintEl) return;
-        pageModeHintEl.textContent = dualPageManager.isDualPage()
-            ? "Đọc với trang đơn"
-            : "Đọc với trang đôi";
-    };
-    updatePageModeHintText();
-    if (pageModeHintEl && dualPageBtn) {
-        const movePageModeHint = (e) => {
-            pageModeHintEl.style.left = `${e.clientX}px`;
-            pageModeHintEl.style.top = `${e.clientY}px`;
-        };
-        dualPageBtn.addEventListener("mouseenter", (e) => {
-            pageModeHintEl.classList.add("visible");
-            movePageModeHint(e);
-        });
-        dualPageBtn.addEventListener("mousemove", movePageModeHint);
-        dualPageBtn.addEventListener("mouseleave", () => {
-            pageModeHintEl.classList.remove("visible");
-        });
-    }
-
-    // Dual page mode toggle
-    if (dualPageBtn) {
-        dualPageBtn.addEventListener("click", () => {
-            dualPageManager.toggle();
-            dualPageManager.applyLayout();
-            applyDualPageCommentState();
-            updatePageModeHintText();
-
-            // Swap icons
-            const singleIcon = dualPageBtn.querySelector('.page_mode_icon.single');
-            const dualIcon = dualPageBtn.querySelector('.page_mode_icon.dual');
-            if (dualPageManager.isDualPage()) {
-                dualPageBtn.classList.add("active");
-                if (singleIcon) singleIcon.style.display = 'none';
-                if (dualIcon) dualIcon.style.display = '';
-            } else {
-                dualPageBtn.classList.remove("active");
-                if (singleIcon) singleIcon.style.display = '';
-                if (dualIcon) dualIcon.style.display = 'none';
-            }
-        });
-    }
-
-    // ----------- Init -----------
-
-    async function init() {
-        // 1) Pages are lazy-loaded; their width/height attributes already
-        //    give each one its final height, so there's no need to wait.
-
-        // 2) Sync heights for each page's comment panel
-        pageStates.forEach((p) => syncPanelHeight(p.page, p.commentPanel));
-        updateBubbleMaxWidths();
-        stateManager.updateButtonLabel();
-        stateManager.applyOverlayState(pageStates);
-
-        // 3) Fetch every comment at once, then animate each page's
-        const byPage = new Map();
-        for (const c of await fetchAllComments()) {
-            byPage.set(c.imageId, [...(byPage.get(c.imageId) ?? []), c]);
-        }
-        for (const pageState of pageStates) {
-            addGroupedBubblesAnimated(pageState, byPage.get(pageState.imageId) ?? []);
-        }
-
-        // 4) Keep panel heights in sync on resize
-        window.addEventListener("resize", () => {
-            pageStates.forEach((p) => syncPanelHeight(p.page, p.commentPanel));
-            // Defer one frame so layout is settled before measuring
-            requestAnimationFrame(() => updateBubbleMaxWidths());
-        });
-    }
-
-    init();
 });

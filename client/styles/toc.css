@@ -1,0 +1,284 @@
+/* Table of contents: the cover's stripe column, docked at the left edge.
+   Rows are spread evenly over the window height; each row is one stripe
+   plus its name. At rest only the stripes show, the current chapter's a
+   little longer. Opened, a black panel
+   slides out from the edge, the stripes fold away and the names take their
+   place, each picking up its stripe's colour on the way in. */
+
+.toc-spine {
+    position: fixed;
+    left: 10px;
+    top: calc(var(--nav-h) + 6px);
+    bottom: 26px;
+    width: 14px;
+    z-index: 47;
+    --toc-sheet-w: 240px;
+}
+
+/* A slightly wider hover target than the stripes themselves */
+.toc-spine::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -10px;
+    right: -18px;
+}
+
+.toc-spine.open::before {
+    right: calc(24px - var(--toc-sheet-w));
+}
+
+body.st-cover .toc-spine {
+    pointer-events: none;
+}
+
+/* ---- Panel ---- */
+/* Black from the window edge, fading out on its right like the old sidebar.
+   It runs up under the navbar so a scrolled-away navbar leaves no gap. */
+.toc-sheet {
+    position: absolute;
+    left: -10px;
+    top: calc(-6px - var(--nav-h));
+    bottom: -26px;
+    width: var(--toc-sheet-w);
+    background: linear-gradient(to right, #000 0%, #000 80%, rgba(0, 0, 0, 0) 100%);
+    transform: translateX(-101%);
+    pointer-events: none;
+    transition: transform 220ms var(--ease-in) 40ms;
+}
+
+.toc-spine.open .toc-sheet {
+    transform: none;
+    transition: transform 380ms var(--ease-out);
+}
+
+.toc-title {
+    position: absolute;
+    top: 0;
+    left: 12px;
+    font-size: 24px;
+    white-space: nowrap;
+    opacity: 0;
+    translate: -16px 0;
+    pointer-events: none;
+    transition: opacity 140ms var(--ease-in), translate 140ms var(--ease-in);
+}
+
+.toc-title span:first-child {
+    position: relative;
+    z-index: 1;
+    padding: 0 3px;
+}
+
+.toc-title .glow-ul {
+    --rgb: 250, 250, 250;
+}
+
+.toc-rows {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 40px;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.toc-row {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;
+    color: #fff;
+    text-decoration: none;
+}
+
+.toc-row.off {
+    cursor: default;
+}
+
+/* ---- Stripes ---- */
+.toc-band {
+    flex: none;
+    width: 14px;
+    transform-origin: left center;
+    opacity: 0.25;
+    transition: opacity 0.45s var(--ease-out), transform 0.3s var(--ease-out);
+}
+
+.toc-row.live .toc-band { opacity: 0.8; }
+
+/* The chapter being read sticks out a little further */
+.toc-row.current .toc-band { opacity: 1; transform: scaleX(1.45); }
+
+.toc-row:hover .toc-band,
+.toc-row:focus-visible .toc-band {
+    opacity: 1;
+    transform: scaleX(1.7);
+}
+
+/* Hidden on the cover; the class stripes arrive by flight (cover.js) and
+   show at full colour for a moment after landing */
+body.st-cover .toc-band { opacity: 0 !important; transition-delay: 0ms; }
+body.flying .toc-row.cohort .toc-band { opacity: 0 !important; transition: none; }
+body.landing .toc-row.cohort .toc-band { opacity: 1 !important; transition: none; }
+body:not(.st-cover) .toc-row:not(.cohort) .toc-band { transition-delay: 0.35s; }
+
+/* Opening folds the stripes against the edge, rippling out from the pointer
+   (--d = rows away); closing, they grow back as the panel leaves.
+   `body` outranks the delayed-entry rule above. */
+body .toc-spine.open .toc-row .toc-band {
+    opacity: 0;
+    transform: scaleX(0);
+    transition:
+        opacity 160ms var(--ease-in) calc(var(--d, 0) * 8ms),
+        transform 200ms var(--ease-in) calc(var(--d, 0) * 8ms);
+}
+
+/* ---- Names ---- */
+/* Entry moves with `translate` (delayed per row); hover grows with `scale`
+   (immediate), so the two never wait on each other */
+.toc-label {
+    align-self: center;
+    position: relative;
+    isolation: isolate;
+    margin-left: 10px;
+    padding: 2px 4px 3px;
+    font-size: var(--toc-font, 14px);
+    font-weight: 350;
+    line-height: 1;
+    white-space: nowrap;
+    transform-origin: left center;
+    opacity: 0;
+    translate: -30px 0;
+    pointer-events: none;
+    transition:
+        opacity 140ms var(--ease-in),
+        translate 140ms var(--ease-in),
+        scale 200ms var(--ease-out);
+}
+
+/* ::after is the hover / current glow, ::before the colour handed over by
+   the stripe as the panel opens */
+.toc-label::before,
+.toc-label::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 2px;
+    right: 2px;
+    top: 50%;
+    height: 1.05em;
+    background: linear-gradient(
+        to bottom,
+        rgba(var(--rgb), 0) 0%,
+        rgba(var(--rgb), 0.5) 25%,
+        rgba(var(--rgb), 1) 50%,
+        rgba(var(--rgb), 0.5) 75%,
+        rgba(var(--rgb), 0) 100%
+    );
+    transform-origin: left center;
+    opacity: 0;
+}
+
+.toc-label::after {
+    transform: scaleX(0.3);
+    transition: opacity 0.2s, transform 0.35s var(--ease-out);
+}
+
+.toc-spine.open .toc-title {
+    opacity: 1;
+    translate: 0 0;
+    transition: opacity 260ms var(--ease-out) 80ms, translate 380ms var(--ease-out) 80ms;
+}
+
+.toc-spine.open .toc-label {
+    opacity: 1;
+    translate: -14px 0;
+    pointer-events: auto;
+    transition:
+        opacity 260ms var(--ease-out) calc(60ms + var(--d, 0) * 14ms),
+        translate 400ms var(--ease-out) calc(60ms + var(--d, 0) * 14ms),
+        scale 200ms var(--ease-out);
+}
+
+.toc-spine.open .toc-row.off .toc-label { opacity: 0.34; }
+.toc-row.current .toc-label { font-weight: 600; }
+
+.toc-spine.open .toc-row.tinted .toc-label::before {
+    animation: toc-handover 560ms var(--ease-out) calc(60ms + var(--d, 0) * 14ms) backwards;
+}
+
+@keyframes toc-handover {
+    0%   { opacity: 0.9; transform: scaleX(0.1); }
+    45%  { opacity: 0.8; transform: scaleX(1); }
+    100% { opacity: 0;   transform: scaleX(1); }
+}
+
+.toc-row.live:hover .toc-label,
+.toc-row.live:focus-visible .toc-label {
+    scale: 1.2;
+}
+
+.toc-row.current .toc-label::after,
+.toc-row.live:hover .toc-label::after,
+.toc-row.live:focus-visible .toc-label::after {
+    opacity: 1;
+    transform: none;
+}
+
+/* Phones open the contents from the toolbar, over a dimmed page */
+.toc-veil {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    .toc-spine {
+        left: 3px;
+        width: 6px;
+        top: calc(var(--nav-h) + 4px);
+        bottom: 84px;
+        z-index: 76;
+        --toc-sheet-w: 220px;
+    }
+
+    .toc-spine::before {
+        display: none;
+    }
+
+    .toc-sheet {
+        left: -3px;
+        top: calc(-4px - var(--nav-h));
+        bottom: -84px;
+    }
+
+    .toc-band {
+        width: 6px;
+    }
+
+    .toc-title {
+        left: 14px;
+    }
+
+    .toc-label {
+        margin-left: 18px;
+    }
+
+    .toc-veil {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 75;
+        background: rgba(0, 0, 0, 0.7);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms var(--ease-in);
+    }
+
+    body.toc-open .toc-veil {
+        opacity: 1;
+        pointer-events: auto;
+        transition: opacity 260ms var(--ease-out);
+    }
+}
