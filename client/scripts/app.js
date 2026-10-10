@@ -17,6 +17,7 @@ import { initScroll, onScroll, routeHash } from "./navigation.js";
 import { initToc, closeToc, sizeSpine } from "./toc.js";
 import { initCover, setStage, playOpening } from "./cover.js";
 import { initToolbar } from "./toolbar.js";
+import { initEggs } from "./eggs.js";
 
 // Clicks outside an open thread or form close it. With nothing open, a click
 // on a page comments on that line (or opens the thread already on it).
@@ -24,7 +25,7 @@ function onDocumentClick(e) {
     if (Date.now() < state.guardUntil) return;
     const t = e.target;
     if (document.body.classList.contains("toc-open") && !t.closest(".toc-spine, .toc_btn")) closeToc();
-    if (t.closest(".comment-bubble, .comment-dot, .comment-composer, .comment-sheet, .sheet-scrim, .toolbar_container, .toc-spine, .cover_container")) return;
+    if (t.closest(".comment-bubble, .comment-dot, .comment-composer, .comment-sheet, .sheet-scrim, .toolbar_container, .toc-spine, .cover_container, .egg-stage")) return;
     if (state.composer) {
         if (!composerHasText()) closeComposer();
     } else if (state.open) {
@@ -78,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initToc();
     initCover();
     initComments();
+    initEggs();
     initToolbar();
     initScroll();
     updateThreadWidths();

@@ -1,0 +1,189 @@
+/**
+ * Builds the easter eggs from tools/pages/eggs.json.
+ *
+ *   cd tools && npm run eggs
+ *
+ * Writes client/scripts/eggs.gen.js (every egg with its hotspots as page
+ * fractions) and one landing page per egg, client/bi-mat/<key>.html.
+ * Phrase spots are found in the word boxes that build.mjs caches in
+ * tools/pages/text/, so run `npm run pages` first.
+ */
+
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(HERE, "../..");
+const OUT_DATA = path.join(ROOT, "client/scripts/eggs.gen.js");
+const OUT_PAGES = path.join(ROOT, "client/bi-mat");
+
+const TEXT_PAD = 0.004; // room beside printed words (touch screens grow the hit area to 32px in CSS)
+const LINE_TRIM = 0.15;  // pdftotext's word boxes span the font's full ascent and descent; trim them to the ink
+
+const pad = (n) => String(n).padStart(3, "0");
+const round = (v) => Math.round(v * 10000) / 10000;
+
+/* ---------- Finding words ---------- */
+
+// Punctuation that may cling to a printed word but isn't part of a phrase match
+const PUNCT = /^[“”"'‘’(.,!?:;…]+|[“”"'‘’).,!?:;…]+$/g;
+const norm = (s) => s.replace(PUNCT, "");
+
+const textCache = {};
+async function wordsOf(n) {
+    if (!textCache[n]) {
+        const file = path.join(HERE, "text", `${pad(n)}.json`);
+        const { w, h, lines } = JSON.parse(await readFile(file, "utf8"));
+        const words = lines.flatMap((line, li) => line.map(([text, x0, y0, x1, y1]) => ({ text, li, x0: x0 / w, y0: y0 / h, x1: x1 / w, y1: y1 / h })));
+        textCache[n] = { words, lines: lines.length };
+    }
+    return textCache[n];
+}
+
+// Index of the first run of words matching the phrase's words
+function findRun(words, phrase, from = 0, to = words.length) {
+    const want = phrase.split(/\s+/).map(norm);
+    for (let i = from; i + want.length <= to; i++) {
+        if (want.every((t, k) => norm(words[i + k].text) === t)) return [i, i + want.length];
+    }
+    return null;
+}
+
+// Union of the words' boxes, trimmed to the matched characters: a phrase
+// like "e^x" leaves the comma of "e^x," outside the box
+function boxOfRun(words, [a, b], phrase) {
+    const ws = words.slice(a, b);
+    const trim = (w, keep) => {
+        const lead = w.text.length - w.text.replace(/^[“”"'‘’(]+/, "").length;
+        const tail = w.text.length - w.text.replace(/[“”"'‘’).,!?:;…]+$/, "").length;
+        const per = (w.x1 - w.x0) / w.text.length;
+        return { x0: w.x0 + (keep.lead ? 0 : lead * per), x1: w.x1 - (keep.tail ? 0 : tail * per) };
+    };
+    const first = phrase.trim();
+    const keep = { lead: /^[“”"'‘’(]/.test(first), tail: /[“”"'‘’).,!?:;…]$/.test(first) };
+    const start = trim(ws[0], { lead: keep.lead, tail: true });
+    const end = trim(ws[ws.length - 1], { lead: true, tail: keep.tail });
+    const x0 = start.x0, x1 = end.x1;
+    const y0 = Math.min(...ws.map((w) => w.y0)), y1 = Math.max(...ws.map((w) => w.y1));
+    return textBox(x0, y0, x1, y1, ws[0].y1 - ws[0].y0);
+}
+
+function textBox(x0, y0, x1, y1, lineH) {
+    const trim = lineH * LINE_TRIM;
+    return [x0 - TEXT_PAD, y0 + trim, x1 - x0 + 2 * TEXT_PAD, y1 - y0 - 2 * trim];
+}
+
+async function resolveSpot(key, s) {
+    if (s.box) return s.box;
+    const { words } = await wordsOf(s.page);
+    if (s.phrase) {
+        const run = findRun(words, s.phrase);
+        if (!run) throw new Error(`${key}: "${s.phrase}" not found on p. ${s.page}`);
+        if (!s.target) return boxOfRun(words, run, s.phrase);
+        const sub = findRun(words, s.target, run[0], run[1]);
+        if (!sub) throw new Error(`${key}: "${s.target}" not inside "${s.phrase}"`);
+        return boxOfRun(words, sub, s.target);
+    }
+    if (s.heading) {
+        const run = findRun(words, s.heading);
+        if (!run) throw new Error(`${key}: heading "${s.heading}" not found on p. ${s.page}`);
+        const firstLine = words[run[1] - 1].li + 1; // the heading may wrap onto two lines
+        const firsts = [];
+        for (let li = firstLine; li < firstLine + s.count; li++) firsts.push(words.find((w) => w.li === li));
+        const x0 = Math.min(...firsts.map((w) => w.x0)), x1 = Math.max(...firsts.map((w) => w.x1));
+        const y0 = Math.min(...firsts.map((w) => w.y0)), y1 = Math.max(...firsts.map((w) => w.y1));
+        return textBox(x0, y0, x1, y1, firsts[0].y1 - firsts[0].y0);
+    }
+    throw new Error(`${key}: a spot needs phrase, heading or box`);
+}
+
+/* ---------- Landing pages ---------- */
+
+const escape = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function landingPage(egg) {
+    return `<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex" />
+        <!-- GENERATED by tools/pages/eggs.mjs. Placeholder until this egg's page is written. -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400&display=swap" rel="stylesheet" />
+        <title>L9622 · ${escape(egg.name)}</title>
+        <style>
+            :root { color-scheme: dark; }
+            body {
+                margin: 0; min-height: 100vh; display: grid; place-content: center; gap: 20px;
+                padding: 16px; box-sizing: border-box; text-align: center;
+                background: #000; color: #fafafa; font: 300 18px/1.5 "Inter Tight", system-ui, sans-serif;
+            }
+            h1 { margin: 0; font-weight: 300; font-size: clamp(22px, 5vw, 36px); }
+            a { color: inherit; opacity: 0.7; }
+            a:hover { opacity: 1; }
+        </style>
+    </head>
+    <body>
+        <h1>Easter egg landing page for ${escape(egg.name)}</h1>
+        <a href="../index.html#trang-${egg.back}">Quay lại trang ${egg.back}</a>
+    </body>
+</html>
+`;
+}
+
+/* ---------- Main ---------- */
+
+async function main() {
+    const { eggs } = JSON.parse(await readFile(path.join(HERE, "eggs.json"), "utf8"));
+    const { sections } = JSON.parse(await readFile(path.join(HERE, "sections.json"), "utf8"));
+    const sectionOf = Object.fromEntries(sections.map((s) => [s.key, s]));
+
+    const out = [];
+    for (const e of eggs) {
+        const sec = sectionOf[e.key];
+        if (!sec) throw new Error(`${e.key}: no such section in sections.json`);
+        const spots = [];
+        for (const s of e.spots) {
+            const box = (await resolveSpot(e.key, s)).map(round);
+            // Named pieces of the page an egg's play needs (each quiz option, a number to cross out)
+            const parts = [];
+            for (const part of s.parts || []) {
+                parts.push({ name: part.name, box: (await resolveSpot(`${e.key}/${part.name}`, { page: s.page, ...part })).map(round) });
+            }
+            spots.push({
+                page: `p${pad(s.page)}`, box,
+                ...(s.lift ? { lift: s.lift } : {}), ...(parts.length ? { parts } : {}), ...(s.check ? { check: true } : {}),
+            });
+        }
+        out.push({
+            key: e.key,
+            name: sec.kind === "class" ? `L${sec.key}` : sec.label,
+            label: e.label,
+            tell: e.tell,
+            href: `bi-mat/${e.key}.html`,
+            back: e.spots[0].page,
+            spots,
+        });
+    }
+
+    await writeFile(OUT_DATA, `/**
+ * GENERATED by tools/pages/eggs.mjs from tools/pages/eggs.json. Don't edit
+ * by hand. Boxes are [x, y, w, h] as fractions of the page.
+ */
+
+export const EGGS = ${JSON.stringify(out.map(({ back, ...e }) => e), null, 4)};
+`);
+    await mkdir(OUT_PAGES, { recursive: true });
+    for (const e of out) await writeFile(path.join(OUT_PAGES, `${e.key}.html`), landingPage(e));
+
+    console.log(`${out.length} eggs, ${out.reduce((s, e) => s + e.spots.length, 0)} hotspots`);
+    for (const e of out) console.log(`  ${e.key.padEnd(13)} ${e.spots.map((s) => `${s.page} [${s.box.join(", ")}]${s.check ? " (check)" : ""}`).join("  ")}`);
+}
+
+main().catch((e) => {
+    console.error(e.message);
+    process.exit(1);
+});

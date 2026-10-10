@@ -1,0 +1,506 @@
+{
+    "_doc": [
+        "Easter eggs: one hidden clickable per section.",
+        "tools/pages/eggs.mjs turns this into client/scripts/eggs.gen.js and one landing page per egg (client/bi-mat/<key>.html).",
+        "A spot is placed by `phrase` (words printed on the page, found in the PDF's text; `target` narrows it to part of the phrase),",
+        "by `heading` + `count` (the first word of each of `count` lines under a heading line), or by `box` [x, y, w, h] in page fractions.",
+        "`parts` names pieces of the page an egg's play needs, each placed like a spot (phrase/target or box).",
+        "`lift` is the area the hover tell animates when it differs from the click area. `check: true` marks a box placed by eye on a",
+        "low-resolution photo that should be confirmed with ?eggs=show.",
+        "`tell` names the hover reaction (styles/eggs.css)."
+    ],
+    "eggs": [
+        {
+            "key": "muc-luc",
+            "tell": "roll",
+            "label": "9891",
+            "spots": [
+                {
+                    "page": 4,
+                    "phrase": "9891"
+                }
+            ]
+        },
+        {
+            "key": "loi-cam-on",
+            "tell": "underline",
+            "label": "bạn đọc",
+            "spots": [
+                {
+                    "page": 11,
+                    "phrase": "bạn đọc"
+                }
+            ]
+        },
+        {
+            "key": "9699",
+            "tell": "tick",
+            "label": "1) Mỹ 2) Anh 3) Pháp 4) Việt Nam",
+            "spots": [
+                {
+                    "page": 23,
+                    "phrase": "1) Mỹ 2) Anh 3) Pháp 4) Việt Nam",
+                    "parts": [
+                        {
+                            "name": "1",
+                            "phrase": "1) Mỹ"
+                        },
+                        {
+                            "name": "2",
+                            "phrase": "2) Anh"
+                        },
+                        {
+                            "name": "3",
+                            "phrase": "3) Pháp"
+                        },
+                        {
+                            "name": "4",
+                            "phrase": "4) Việt Nam"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "9700",
+            "tell": "shake",
+            "label": "CÓ CƯỚP, CƯỚP KÌA!",
+            "spots": [
+                {
+                    "page": 26,
+                    "phrase": "CÓ CƯỚP, CƯỚP KÌA!"
+                }
+            ]
+        },
+        {
+            "key": "9801",
+            "tell": "raise",
+            "label": "VẬT LÍ, Thầy & trò",
+            "spots": [
+                {
+                    "page": 35,
+                    "box": [
+                        0.095,
+                        0.19,
+                        0.338,
+                        0.378
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "9902",
+            "tell": "static",
+            "label": "Ngã rẽ cuộc đời",
+            "spots": [
+                {
+                    "page": 39,
+                    "phrase": "Ngã rẽ cuộc đời"
+                }
+            ]
+        },
+        {
+            "key": "0003",
+            "tell": "tilt",
+            "label": "lá bài",
+            "spots": [
+                {
+                    "page": 47,
+                    "box": [
+                        0.8,
+                        0.795,
+                        0.05,
+                        0.05
+                    ],
+                    "check": true
+                }
+            ]
+        },
+        {
+            "key": "0104",
+            "tell": "ink",
+            "label": "PHỎNG VẤN",
+            "spots": [
+                {
+                    "page": 56,
+                    "phrase": "PHỎNG VẤN"
+                }
+            ]
+        },
+        {
+            "key": "0205",
+            "tell": "ink",
+            "label": "PHỎNG VẤN",
+            "spots": [
+                {
+                    "page": 58,
+                    "phrase": "PHỎNG VẤN"
+                }
+            ]
+        },
+        {
+            "key": "0306",
+            "tell": "mirror",
+            "label": "chữ in ngược trên áo lớp",
+            "spots": [
+                {
+                    "page": 67,
+                    "box": [
+                        0.61,
+                        0.155,
+                        0.055,
+                        0.115
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "0407",
+            "tell": "ripple",
+            "label": "ANH LUÔN CÓ LÝ",
+            "spots": [
+                {
+                    "page": 79,
+                    "box": [
+                        0.44,
+                        0.645,
+                        0.37,
+                        0.11
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "0508",
+            "tell": "spark",
+            "label": "que pháo bông",
+            "spots": [
+                {
+                    "page": 87,
+                    "box": [
+                        0.3,
+                        0.35,
+                        0.13,
+                        0.11
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "0609",
+            "tell": "rise",
+            "label": "bong bóng",
+            "spots": [
+                {
+                    "page": 101,
+                    "box": [
+                        0.33,
+                        0.085,
+                        0.07,
+                        0.05
+                    ],
+                    "check": true
+                }
+            ]
+        },
+        {
+            "key": "0710",
+            "tell": "bounce",
+            "label": "quả bóng",
+            "spots": [
+                {
+                    "page": 111,
+                    "box": [
+                        0.53,
+                        0.195,
+                        0.06,
+                        0.05
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "0811",
+            "tell": "strum",
+            "label": "cây đàn guitar",
+            "spots": [
+                {
+                    "page": 123,
+                    "box": [
+                        0.54,
+                        0.535,
+                        0.23,
+                        0.165
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "0912",
+            "tell": "sweep",
+            "label": "TẾT NĂM NAY CHÚC MẠNH KHỎE VUI VẺ HỌC TỐT",
+            "spots": [
+                {
+                    "page": 136,
+                    "heading": "LA THÚY MINH NGỌC",
+                    "count": 10
+                }
+            ]
+        },
+        {
+            "key": "1013",
+            "tell": "raise",
+            "label": "Máy bay giấy gửi mơ ước bay xa",
+            "spots": [
+                {
+                    "page": 147,
+                    "phrase": "Máy bay giấy gửi mơ ước bay xa"
+                }
+            ]
+        },
+        {
+            "key": "1114",
+            "tell": "pulse",
+            "label": "trái tim",
+            "spots": [
+                {
+                    "page": 161,
+                    "box": [
+                        0.38,
+                        0.5,
+                        0.2,
+                        0.1
+                    ],
+                    "lift": [
+                        0.1,
+                        0.11,
+                        0.75,
+                        0.62
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "1215",
+            "tell": "tilt",
+            "label": "tờ confession",
+            "spots": [
+                {
+                    "page": 166,
+                    "box": [
+                        0.325,
+                        0.56,
+                        0.24,
+                        0.155
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "1316",
+            "tell": "chalk",
+            "label": "Lý do vắng: đã trưởng thành",
+            "spots": [
+                {
+                    "page": 179,
+                    "phrase": "Lý do vắng: đã trưởng thành",
+                    "parts": [
+                        {
+                            "name": "si-so",
+                            "phrase": "Sĩ số: 27",
+                            "target": "27"
+                        },
+                        {
+                            "name": "vang",
+                            "phrase": "Vắng: 27",
+                            "target": "27"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "1417",
+            "tell": "firefly",
+            "label": "ánh đèn",
+            "spots": [
+                {
+                    "page": 193,
+                    "box": [
+                        0.578,
+                        0.635,
+                        0.055,
+                        0.04
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "1518",
+            "tell": "flicker",
+            "label": "mã đề 125",
+            "spots": [
+                {
+                    "page": 198,
+                    "phrase": "mã đề 125"
+                }
+            ]
+        },
+        {
+            "key": "1619",
+            "tell": "speech",
+            "label": "Kim không ghét Chi đâu.",
+            "spots": [
+                {
+                    "page": 216,
+                    "phrase": "“Kim không ghét Chi đâu.”"
+                }
+            ]
+        },
+        {
+            "key": "1720",
+            "tell": "recoil",
+            "label": "cây súng thí nghiệm",
+            "spots": [
+                {
+                    "page": 226,
+                    "box": [
+                        0.5,
+                        0.74,
+                        0.105,
+                        0.065
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "1821",
+            "tell": "derive",
+            "label": "e^x",
+            "spots": [
+                {
+                    "page": 237,
+                    "phrase": "e^x"
+                }
+            ]
+        },
+        {
+            "key": "1922",
+            "tell": "wobble",
+            "label": "bảng tên",
+            "spots": [
+                {
+                    "page": 262,
+                    "box": [
+                        0.085,
+                        0.365,
+                        0.22,
+                        0.155
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "thay-phuc",
+            "tell": "field",
+            "label": "ra khỏi Bắc vào Nam",
+            "spots": [
+                {
+                    "page": 281,
+                    "phrase": "ra khỏi Bắc vào Nam"
+                }
+            ]
+        },
+        {
+            "key": "thay-ngoc",
+            "tell": "glow",
+            "label": "LÝ",
+            "spots": [
+                {
+                    "page": 288,
+                    "phrase": "hợp LÝ",
+                    "target": "LÝ"
+                }
+            ]
+        },
+        {
+            "key": "co-quynh-anh",
+            "tell": "glow",
+            "label": "Là khối đáng yêu nhất!",
+            "spots": [
+                {
+                    "page": 295,
+                    "phrase": "Là khối đáng yêu nhất!"
+                }
+            ]
+        },
+        {
+            "key": "thay-hoang",
+            "tell": "ink",
+            "label": "Kính đen",
+            "spots": [
+                {
+                    "page": 296,
+                    "phrase": "Kính đen"
+                }
+            ]
+        },
+        {
+            "key": "doi-tuyen-ly",
+            "tell": "crack",
+            "label": "góc phòng",
+            "spots": [
+                {
+                    "page": 304,
+                    "box": [
+                        0.84,
+                        0.915,
+                        0.1,
+                        0.065
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "trung-thu",
+            "tell": "glow",
+            "label": "ánh trăng",
+            "spots": [
+                {
+                    "page": 312,
+                    "box": [
+                        0.87,
+                        0.41,
+                        0.13,
+                        0.18
+                    ]
+                },
+                {
+                    "page": 313,
+                    "box": [
+                        0,
+                        0.41,
+                        0.085,
+                        0.18
+                    ]
+                }
+            ]
+        },
+        {
+            "key": "loi-ket",
+            "tell": "flicker",
+            "label": "LỚP / SS / HD / V: 0",
+            "spots": [
+                {
+                    "page": 327,
+                    "box": [
+                        0.76,
+                        0.295,
+                        0.09,
+                        0.095
+                    ]
+                }
+            ]
+        }
+    ]
+}

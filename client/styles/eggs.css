@@ -1,0 +1,467 @@
+/* =========================
+   Easter eggs (eggs.js)
+   A spot is invisible until it reacts. .egg-lift is a copy of the page cut to
+   the object and laid over it, so a tell moves the printed object itself;
+   .egg-under is plain paper behind it, for tells that shift the copy.
+   Tells stay under 600ms; the exit (.is-go) is 420ms.
+   ========================= */
+
+.egg-spot {
+    position: absolute;
+    z-index: 3;
+    display: block;
+    pointer-events: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+/* Only the hit area takes the pointer: the object's box, or 32 × 32 px
+   around its centre on touch screens, so neighbouring lines stay commentable */
+.egg-hit {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 100%; height: 100%;
+    translate: -50% -50%;
+    z-index: 1;
+    cursor: pointer;
+    pointer-events: auto;
+}
+@media (pointer: coarse) {
+    .egg-hit { width: max(100%, 32px); height: max(100%, 32px); }
+}
+
+.egg-lift,
+.egg-under {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.egg-lift {
+    background-repeat: no-repeat;
+    transform-origin: 50% 50%;
+    will-change: transform, filter;
+}
+
+.egg-under { background: #fff; }
+
+.egg-spot.is-tell .egg-lift,
+.egg-spot.is-go .egg-lift { visibility: visible; }
+
+/* Tells that move the copy off its place show the paper under it */
+.egg-spot.is-tell:is(.egg-roll, .egg-shake, .egg-raise, .egg-tilt, .egg-speech, .egg-recoil, .egg-wobble) .egg-under {
+    visibility: visible;
+}
+
+/* ---------- Exit: the object swells, brightens and fades ---------- */
+
+.egg-spot.is-go .egg-lift { animation: egg-go 420ms cubic-bezier(.3, 0, .2, 1) forwards; }
+@keyframes egg-go {
+    to { transform: scale(1.12); filter: brightness(1.15); opacity: 0; }
+}
+
+/* ---------- Tells ---------- */
+
+/* Mục lục: the misprint flicks like an odometer */
+.egg-roll.is-tell .egg-lift { animation: egg-roll 480ms ease-in-out; }
+@keyframes egg-roll {
+    35% { transform: translateY(-40%); filter: blur(1px); opacity: 0.4; }
+    36% { transform: translateY(40%); }
+    100% { transform: none; filter: none; opacity: 1; }
+}
+
+/* Lời cảm ơn: an underline in the reader's own class colour */
+.egg-underline::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 4%;
+    height: 2px;
+    background: rgb(var(--egg-reader-rgb));
+    transform: scaleX(0);
+    transform-origin: left;
+    pointer-events: none;
+}
+.egg-underline.is-tell::after { animation: egg-underline 560ms ease-out; }
+@keyframes egg-underline {
+    50%, 80% { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(1); opacity: 0; }
+}
+
+/* 9699: a pencil tick beside the answers */
+.egg-tick::after {
+    content: "";
+    position: absolute;
+    left: -3.5%; top: 18%;
+    width: 1.6%; height: 45%;
+    border: solid rgba(60, 60, 60, 0.75);
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg) scale(0);
+    transform-origin: bottom right;
+    pointer-events: none;
+}
+.egg-tick.is-tell::after { animation: egg-tick 560ms ease-out; }
+@keyframes egg-tick {
+    40%, 85% { transform: rotate(40deg) scale(1); opacity: 1; }
+    100% { transform: rotate(40deg) scale(1); opacity: 0; }
+}
+
+/* 9700: the shout shakes */
+.egg-shake.is-tell .egg-lift { animation: egg-shake 420ms linear; }
+@keyframes egg-shake {
+    15%, 55% { transform: translateX(-1.5px) rotate(-0.6deg); }
+    35%, 75% { transform: translateX(1.5px) rotate(0.6deg); }
+    100% { transform: none; }
+}
+
+/* 9801, 1013: the paper lifts off the page */
+.egg-raise.is-tell .egg-lift { animation: egg-raise 560ms ease-in-out; }
+@keyframes egg-raise {
+    45% { transform: translateY(-3px) rotate(-0.4deg); filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.22)); }
+    100% { transform: none; filter: none; }
+}
+
+/* 9902: a flicker of TV static */
+.egg-static.is-tell .egg-lift { animation: egg-static 420ms steps(1); }
+.egg-static.is-tell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 3px);
+    animation: egg-static-lines 420ms steps(1) forwards;
+    pointer-events: none;
+}
+@keyframes egg-static {
+    0% { filter: contrast(1.6) brightness(1.2); transform: translateX(1px); }
+    25% { filter: grayscale(1) blur(0.6px); transform: translateX(-1px); }
+    50% { filter: contrast(2) brightness(0.8); transform: none; }
+    75% { filter: blur(0.4px); }
+    100% { filter: none; }
+}
+@keyframes egg-static-lines { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+
+/* 0003 card, 1215 note: tips as if slipped away / curling */
+.egg-tilt.is-tell .egg-lift { animation: egg-tilt 520ms ease-in-out; transform-origin: 30% 90%; }
+@keyframes egg-tilt {
+    45% { transform: rotate(-3deg) translateY(-1px); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25)); }
+    100% { transform: none; filter: none; }
+}
+
+/* 0104, 0205, Thầy Hoàng: darker, as if in pencil / sunglasses */
+.egg-ink.is-tell .egg-lift { animation: egg-ink 560ms ease-in-out; }
+@keyframes egg-ink {
+    40%, 70% { filter: brightness(0.45) saturate(0.6); }
+    100% { filter: none; }
+}
+
+/* 0306: the mirror-printed shirt text reads the right way round */
+.egg-mirror.is-tell .egg-lift { animation: egg-mirror 600ms ease-in-out; }
+@keyframes egg-mirror {
+    30%, 75% { transform: scaleX(-1); }
+    100% { transform: none; }
+}
+
+/* 0407: the banner ripples once */
+.egg-ripple.is-tell .egg-lift { animation: egg-ripple 560ms ease-in-out; transform-origin: 0 50%; }
+@keyframes egg-ripple {
+    25% { transform: skewY(1.2deg) scaleY(1.02); }
+    55% { transform: skewY(-0.8deg); }
+    80% { transform: skewY(0.3deg); }
+    100% { transform: none; }
+}
+
+/* 0508: the sparkler flares */
+.egg-spark.is-tell .egg-lift { animation: egg-spark 480ms ease-out; }
+@keyframes egg-spark {
+    25% { filter: brightness(1.8) saturate(1.3); transform: scale(1.04); }
+    100% { filter: none; transform: none; }
+}
+
+/* 0609: a bubble drifts up out of the photo */
+.egg-rise.is-tell .egg-lift { animation: egg-rise 600ms ease-out; }
+@keyframes egg-rise {
+    0% { opacity: 0.9; }
+    100% { transform: translateY(-140%) scale(0.85); opacity: 0; filter: brightness(1.3); }
+}
+
+/* 0710: the ball nudges up */
+.egg-bounce.is-tell .egg-lift { animation: egg-bounce 480ms cubic-bezier(.3, 0, .3, 1); }
+@keyframes egg-bounce {
+    30% { transform: translateY(-2px); }
+    60% { transform: none; }
+    80% { transform: translateY(-1px); }
+    100% { transform: none; }
+}
+
+/* 0811: the strings blur, just strummed */
+.egg-strum.is-tell .egg-lift { animation: egg-strum 520ms linear; }
+@keyframes egg-strum {
+    10%, 50% { transform: translateX(0.5px); filter: blur(0.6px); }
+    30%, 70% { transform: translateX(-0.5px); filter: blur(0.5px); }
+    100% { transform: none; filter: none; }
+}
+
+/* 0912: the acrostic's capitals light up from the top down */
+.egg-sweep.is-tell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent 0 35%, rgba(var(--rgb), 0.35) 45% 55%, transparent 65%) 0 0 / 100% 300% no-repeat;
+    mix-blend-mode: multiply;
+    animation: egg-sweep 600ms ease-in-out forwards;
+    pointer-events: none;
+}
+@keyframes egg-sweep {
+    from { background-position: 0 100%; }
+    to { background-position: 0 0; opacity: 0.6; }
+}
+
+/* 1114: the heart beats once */
+.egg-pulse.is-tell .egg-lift { animation: egg-pulse 520ms ease-in-out; }
+@keyframes egg-pulse {
+    35% { transform: scale(1.02); }
+    100% { transform: none; }
+}
+
+/* 1316: a puff of chalk dust */
+.egg-chalk.is-tell .egg-lift { animation: egg-chalk 560ms ease-out; }
+@keyframes egg-chalk {
+    30% { filter: brightness(1.5) blur(0.5px); opacity: 0.75; }
+    100% { filter: none; opacity: 1; }
+}
+
+/* 1417: the light flickers like a firefly; Trung Thu, Thầy Ngọc, Cô Quỳnh Anh glow */
+.egg-firefly.is-tell .egg-lift { animation: egg-firefly 600ms steps(6); }
+@keyframes egg-firefly {
+    0%, 34%, 68% { filter: brightness(2.2) drop-shadow(0 0 4px rgba(255, 230, 140, 0.9)); }
+    17%, 51%, 85% { filter: brightness(1.2); }
+    100% { filter: none; }
+}
+
+.egg-glow.is-tell .egg-lift { animation: egg-glow 600ms ease-in-out; }
+@keyframes egg-glow {
+    40%, 65% { filter: brightness(1.12) drop-shadow(0 0 5px rgba(var(--rgb), 0.85)); }
+    100% { filter: none; }
+}
+
+/* 1518, Lời kết: a digit flickers like a display */
+.egg-flicker.is-tell .egg-lift { animation: egg-flicker 480ms steps(1); }
+@keyframes egg-flicker {
+    0% { opacity: 0.25; }
+    20% { opacity: 1; }
+    40% { opacity: 0.4; }
+    60%, 100% { opacity: 1; }
+}
+
+/* 1619: the quoted words lift into a speech bubble */
+.egg-speech.is-tell .egg-lift { animation: egg-speech 600ms ease-in-out; border-radius: 10px; }
+@keyframes egg-speech {
+    40%, 70% { transform: translateY(-4px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18); }
+    100% { transform: none; box-shadow: none; }
+}
+
+/* 1720: a tiny recoil */
+.egg-recoil.is-tell .egg-lift { animation: egg-recoil 300ms ease-out; }
+@keyframes egg-recoil {
+    20% { transform: translateX(1.5px); }
+    100% { transform: none; }
+}
+
+/* 1821: d/dx appears just before it, and e^x stays exactly the same */
+.egg-derive::before {
+    content: "d/dx";
+    position: absolute;
+    right: 70%; bottom: 85%;
+    padding: 0 2px;
+    background: #fff;
+    font: italic 400 calc(var(--page-w, 600px) * 0.024) / 1 "Times New Roman", serif;
+    color: rgba(var(--rgb), 0.9);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+}
+.egg-derive.is-tell::before { animation: egg-derive 600ms ease-in-out; }
+@keyframes egg-derive {
+    30%, 75% { opacity: 1; }
+    100% { opacity: 0; }
+}
+/* the animation the spot itself waits on */
+.egg-derive.is-tell .egg-lift { animation: egg-hold 600ms; }
+
+/* 1922: the plates wobble, half unscrewed */
+.egg-wobble.is-tell .egg-lift { animation: egg-wobble 560ms ease-in-out; transform-origin: 50% 0; }
+@keyframes egg-wobble {
+    20% { transform: rotate(1.5deg); }
+    45% { transform: rotate(-1.2deg); }
+    70% { transform: rotate(0.6deg); }
+    100% { transform: none; }
+}
+
+/* Thầy Phúc: a field line arcs from the start of the phrase to its end */
+.egg-field::after {
+    content: "";
+    position: absolute;
+    left: 2%; right: 2%; bottom: 70%;
+    height: 90%;
+    border: 1.5px solid rgba(var(--rgb), 0.8);
+    border-bottom: 0;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    clip-path: inset(0 100% 0 0);
+    pointer-events: none;
+}
+.egg-field.is-tell::after { animation: egg-field 600ms ease-in-out; }
+.egg-field.is-tell .egg-lift { animation: egg-hold 600ms; }
+@keyframes egg-field {
+    60% { clip-path: inset(0 0 0 0); opacity: 1; }
+    100% { clip-path: inset(0 0 0 0); opacity: 0; }
+}
+
+/* Đội tuyển Lý: a thin line of light, a door opening a crack */
+.egg-crack::after {
+    content: "";
+    position: absolute;
+    right: 20%; top: 5%; bottom: 5%;
+    width: 2px;
+    background: linear-gradient(transparent, rgba(255, 236, 160, 1) 30% 70%, transparent);
+    box-shadow: 0 0 6px 1px rgba(255, 220, 120, 0.8);
+    opacity: 0;
+    pointer-events: none;
+}
+.egg-crack.is-tell::after { animation: egg-crack 600ms ease-in-out; }
+.egg-crack.is-tell .egg-lift { animation: egg-hold 600ms; }
+@keyframes egg-crack {
+    40%, 70% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes egg-hold { to { opacity: 1; } }
+
+/* ---------- ?eggs=show: outline every spot (placing and checking) ---------- */
+
+body.eggs-show .egg-spot { outline: 2px dashed rgba(0, 160, 255, 0.9); outline-offset: 1px; }
+body.eggs-show .egg-spot.egg-check { outline-color: rgba(255, 60, 60, 0.95); }
+
+@media (prefers-reduced-motion: reduce) {
+    .egg-spot *, .egg-spot::before, .egg-spot::after { animation: none !important; }
+}
+
+/* =========================
+   Playing an egg: its stage over the page (eggs.js play, scripts/eggs/*)
+   Only .egg-live pieces take the pointer; the rest of the page stays readable.
+   ========================= */
+
+.egg-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    animation: egg-stage-in 240ms ease-out;
+    --egg-pen: "Patrick Hand", "Segoe Print", "Bradley Hand", cursive;
+}
+.egg-stage.is-closing { opacity: 0; transition: opacity 220ms ease-in; }
+@keyframes egg-stage-in { from { opacity: 0; } }
+
+.egg-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+.egg-live { pointer-events: auto; }
+
+/* The way on to the egg's own page, once it has been played */
+.egg-door {
+    position: absolute;
+    pointer-events: auto;
+    translate: -50% -50%;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 0 0 1.5px rgba(var(--rgb), 0.5), 0 2px 10px rgba(0, 0, 0, 0.12);
+    color: rgb(var(--rgb));
+    font: 500 calc(var(--page-w, 600px) * 0.021) / 1.4 "Inter Tight", sans-serif;
+    text-decoration: none;
+    white-space: nowrap;
+    animation: egg-stage-in 400ms 300ms ease-out backwards;
+}
+.egg-door:hover { background: rgba(var(--rgb), 0.1); }
+
+.egg-hint {
+    font: 400 17px "Inter Tight", sans-serif;
+    fill: rgba(0, 0, 0, 0.55);
+    stroke: #fff;
+    stroke-width: 5px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+    text-anchor: middle;
+    transition: opacity 400ms;
+}
+.egg-hint.is-gone { opacity: 0; }
+
+/* Pen: strokes draw themselves, writing fades in */
+.egg-pen-stroke { fill: none; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1; }
+.egg-pen.is-drawing .egg-pen-stroke { animation: egg-pen-draw 420ms ease-out backwards; }
+.egg-pen.is-drawing text { animation: egg-stage-in 300ms 260ms ease-out backwards; }
+@keyframes egg-pen-draw { from { stroke-dashoffset: 1; } }
+.egg-pen-score { font: 400 58px var(--egg-pen); text-anchor: end; }
+.egg-pen-note { font: 400 21px var(--egg-pen); text-anchor: end; }
+.egg-pen-note.egg-pen-left { text-anchor: start; }
+.egg-pen-fix { font: 400 30px var(--egg-pen); }
+
+/* Thầy Phúc: magnet and field lines */
+.egg-magnet-bar { cursor: grab; touch-action: none; }
+.egg-magnet.is-held .egg-magnet-bar { cursor: grabbing; }
+.egg-magnet-bar .pole-n { fill: rgb(214, 58, 52); }
+.egg-magnet-bar .pole-s { fill: rgb(52, 98, 200); }
+.egg-magnet-bar .pole-label {
+    font: 600 17px "Inter Tight", sans-serif;
+    fill: #fff;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+}
+.egg-field-lines path {
+    fill: none;
+    stroke: rgba(var(--rgb), 0.7);
+    stroke-width: 2;
+    stroke-dasharray: 7 9;
+}
+.egg-field-lines.is-flowing path { animation: egg-flow 900ms linear infinite; }
+@keyframes egg-flow { to { stroke-dashoffset: -32; } }
+
+/* 9699: the quiz options become answerable */
+.egg-quiz-option {
+    position: absolute;
+    padding: 0;
+    border: 1.5px dashed transparent;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+}
+.egg-quiz-option:hover,
+.egg-quiz-option:focus-visible { border-color: rgba(60, 60, 60, 0.45); outline: none; }
+
+/* 1316: the roll is called once more */
+.egg-roll-ask {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 400 calc(var(--page-w, 600px) * 0.028) / 1 var(--egg-pen);
+    color: rgb(30, 60, 160);
+    white-space: nowrap;
+}
+.egg-roll-yes {
+    padding: 2px 10px;
+    border: 1.5px solid currentColor;
+    border-radius: 999px;
+    background: #fff;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.egg-roll-yes:hover { background: rgba(30, 60, 160, 0.08); }
+
+/* While an egg plays, the pointer line stays away */
+body.egg-playing .page-anchor.is-trace .anchor-band { opacity: 0 !important; }
