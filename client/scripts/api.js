@@ -3,22 +3,15 @@
  * Handles all fetch/save operations with the backend
  */
 
-export async function fetchCommentsForImage(imageId) {
+// One request for the whole book. Without a server (e.g. the static
+// GitHub Pages build) this resolves to an empty list.
+export async function fetchAllComments() {
     try {
-        const res = await fetch(
-            `/api/comments?imageId=${encodeURIComponent(imageId)}`,
-        );
-        if (!res.ok) {
-            console.error(
-                "GET /api/comments failed with status",
-                res.status,
-            );
-            return [];
-        }
+        const res = await fetch("/api/comments");
+        if (!res.ok) return [];
         const data = await res.json();
         return Array.isArray(data) ? data : [];
-    } catch (err) {
-        console.error("GET /api/comments error:", err);
+    } catch {
         return [];
     }
 }
