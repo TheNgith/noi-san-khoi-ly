@@ -361,7 +361,7 @@ const pageOf = (target) => {
 // Follows the pointer only while it moves over a page; resting, it fades
 function onReaderPointerMove(e) {
     if (e.pointerType !== "mouse" || isMobile() || !state.commentsOn || state.open || state.composer || state.stage !== "reading") return hideTrace();
-    if (e.target.closest(".comment-bubble")) return hideTrace();
+    if (e.target.closest(".comment-bubble, .egg-spot")) return hideTrace();
     const p = pageOf(e.target);
     if (!p) { hideTrace(); clearPreview(); return; }
     const r = p.paper.getBoundingClientRect();

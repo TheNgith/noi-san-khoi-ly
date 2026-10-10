@@ -17,6 +17,7 @@ import { initScroll, onScroll, routeHash } from "./navigation.js";
 import { initToc, closeToc, sizeSpine } from "./toc.js";
 import { initCover, setStage, playOpening } from "./cover.js";
 import { initToolbar } from "./toolbar.js";
+import { initEggs } from "./eggs.js";
 
 // Clicks outside an open thread or form close it. With nothing open, a click
 // on a page comments on that line (or opens the thread already on it).
@@ -78,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initToc();
     initCover();
     initComments();
+    initEggs();
     initToolbar();
     initScroll();
     updateThreadWidths();
