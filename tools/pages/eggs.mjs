@@ -148,7 +148,15 @@ async function main() {
         const spots = [];
         for (const s of e.spots) {
             const box = (await resolveSpot(e.key, s)).map(round);
-            spots.push({ page: `p${pad(s.page)}`, box, ...(s.lift ? { lift: s.lift } : {}), ...(s.check ? { check: true } : {}) });
+            // Named pieces of the page an egg's play needs (each quiz option, a number to cross out)
+            const parts = [];
+            for (const part of s.parts || []) {
+                parts.push({ name: part.name, box: (await resolveSpot(`${e.key}/${part.name}`, { page: s.page, ...part })).map(round) });
+            }
+            spots.push({
+                page: `p${pad(s.page)}`, box,
+                ...(s.lift ? { lift: s.lift } : {}), ...(parts.length ? { parts } : {}), ...(s.check ? { check: true } : {}),
+            });
         }
         out.push({
             key: e.key,
