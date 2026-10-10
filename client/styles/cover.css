@@ -1,10 +1,245 @@
+/* Cover fills the first screen on its own, at the same size as the pages
+   below, with the same gap above and below it. It is pulled up under the
+   sticky navbar (transparent while the cover is showing, see navigation.js),
+   so the navbar is part of the space above it. */
 .cover_container {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    top: 20px;
-    text-align: center;
+    min-height: 100vh;
+    min-height: 100svh;
+    margin-top: calc(-1 * var(--nav-h));
+    padding: var(--screen-gap) 16px;
 }
 
-.cover {
-    width: 545px;
+.cover-card {
+    position: relative;
+    width: var(--base-page-width);
+    aspect-ratio: 419.53 / 595.28;
+    background: #fff;
+}
+
+.cover-art {
+    display: block;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+/* The 23 class stripes, drawn by cover.js so they can leave the cover.
+   cover_shape_bare.svg is cover_shape.svg without them; the geometry below
+   is the stripes' box in that artwork (viewBox 419.53 × 595.28). */
+.cover-stripes {
+    position: absolute;
+    left: 0;
+    top: 22.875%;
+    width: 21.55%;
+    height: 49.533%;
+    display: flex;
+    flex-direction: column;
+}
+
+.cover-stripe {
+    flex: 1;
+    display: block;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    transform-origin: left center;
+    transition: opacity 200ms, transform 300ms var(--ease-out);
+}
+
+.cover-stripe.off {
+    cursor: default;
+}
+
+/* Hovering a stripe singles it out and names its class beside the cover */
+.cover-stripes.picking .cover-stripe:not(.hot) {
+    opacity: 0.28;
+}
+
+.cover-stripe.hot {
+    transform: scaleX(1.14);
+}
+
+.cover-label {
+    position: absolute;
+    right: calc(50% + var(--base-page-width) / 2 + 30px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    transform: translateY(-50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 160ms;
+}
+
+.cover-label.on {
+    opacity: 1;
+}
+
+.cover-label-code {
+    position: relative;
+    z-index: 1;
+    padding: 0 3px;
+    font-size: 26px;
+}
+
+.cover-label .glow-ul {
+    width: 100%;
+    height: 26px;
+    margin-top: -14px;
+}
+
+.cover-label-years {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--ink-3);
+}
+
+/* "Bắt đầu đọc" / "Đọc tiếp", level with the cover's bottom edge */
+.cover-cue {
+    position: absolute;
+    left: calc(50% + var(--base-page-width) / 2 + 44px);
+    bottom: var(--screen-gap);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.cue-main {
+    padding: 0;
+    font-size: 24px;
+    text-align: left;
+}
+
+.cue-main-text {
+    position: relative;
+    z-index: 1;
+    padding: 0 3px;
+}
+
+.cue-main .glow-ul {
+    --rgb: 250, 250, 250;
+    height: 28px;
+    margin-top: -15px;
+}
+
+.cue-main:hover .glow-ul,
+.cue-main:focus-visible .glow-ul {
+    --rgb: 237, 39, 146;
+}
+
+.cue-sub {
+    padding-left: 3px;
+    font-size: 13px;
+    color: var(--ink-3);
+}
+
+.cue-alt {
+    padding: 2px 3px;
+    font-size: 13px;
+    color: var(--ink-2);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.cue-arrow {
+    width: 18px;
+    height: 18px;
+    margin: 10px 0 0 3px;
+    animation: cue-nudge 1.8s ease-in-out infinite;
+}
+
+@keyframes cue-nudge {
+    0%, 100% { transform: none; }
+    50%      { transform: translateY(5px); }
+}
+
+/* =========================
+   Opening sequence
+   ========================= */
+
+/* Cover rises in, stripes draw from 96 up to 21, then the cue appears */
+body.opening .button_container { animation: cover-fade 700ms 200ms both; }
+body.opening .cover-card { animation: cover-in 900ms var(--ease-out) 120ms both; }
+body.opening .cover-stripe {
+    animation: stripe-in 560ms var(--ease-out) both;
+    animation-delay: calc(620ms + var(--k) * 38ms);
+}
+body.opening .cover-cue { animation: cue-in 700ms var(--ease-out) 1550ms both; }
+
+@keyframes cover-in { from { opacity: 0; transform: translateY(18px) scale(0.985); } }
+@keyframes stripe-in { from { transform: scaleX(0); } }
+@keyframes cue-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes cover-fade { from { opacity: 0; } }
+
+/* =========================
+   Stages: cover ↔ reading
+   ========================= */
+
+body:not(.st-cover) .cover-stripes,
+body.flying .cover-stripes {
+    visibility: hidden;
+}
+
+body:not(.st-cover) .cover-cue {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms;
+}
+
+/* The stripe column in flight between the cover and the contents bar
+   (positioned and transformed by cover.js) */
+.stripe-flyer {
+    position: fixed;
+    z-index: 58;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform;
+}
+
+body.flying .stripe-flyer {
+    opacity: 1;
+}
+
+.stripe-flyer span {
+    flex: 1;
+}
+
+/* =========================
+   Phones
+   ========================= */
+
+@media (max-width: 760px) {
+    .page-reader {
+        --base-page-width: min(calc(100vw - 32px), calc((100svh - 200px) * 0.705));
+    }
+
+    .cover_container {
+        flex-direction: column;
+        gap: 22px;
+        padding-top: calc(var(--nav-h) + 12px);
+    }
+
+    .cover-cue {
+        position: static;
+        align-items: center;
+        text-align: center;
+    }
+
+    .cue-sub,
+    .cue-alt {
+        padding-left: 0;
+    }
+
+    .cover-label {
+        display: none;
+    }
 }
