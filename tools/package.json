@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Build scripts for the book pages; see the header of pages/build.mjs",
   "scripts": {
-    "pages": "node pages/build.mjs"
+    "pages": "node pages/build.mjs",
+    "eggs": "node pages/eggs.mjs"
   },
   "devDependencies": {
     "svgo": "^4.1.0"
