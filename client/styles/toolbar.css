@@ -2,12 +2,25 @@
     display: flex;
     flex-direction: column;
     position: fixed;
-    top: 100px;
+    top: calc(var(--navbar-height) + 24px); /* level with "Mục lục" */
     right: 0;
+    zoom: var(--ui-scale);
     align-items: center;
     gap: 25px;
     margin-right: 20px;
     z-index: 100;
+    transition:
+        opacity 360ms var(--ease-out) 250ms,
+        transform 460ms var(--ease-out) 250ms;
+}
+
+/* Out of the way on the cover; slides in when reading starts */
+body.st-cover .toolbar_container {
+    opacity: 0;
+    transform: translateX(14px);
+    pointer-events: none;
+    transition-delay: 0ms;
+    transition-duration: 200ms;
 }
 
 /* ---- Shared button reset ---- */
@@ -23,9 +36,9 @@
 .toolbar_container button:hover {
     opacity: 0.5;
 }
-.toolbar_container button.active,
-.toolbar_container button.on {
-    opacity: 1;
+.toolbar_container button:disabled {
+    opacity: 0.25;
+    cursor: default;
 }
 
 /* ---- Zoom ---- */
@@ -36,31 +49,30 @@
     gap: 10px;
 }
 .zoom_container img {
+    display: block;
     width: 25px;
     height: 25px;
 }
 .zoom_percent {
+    min-width: 4ch;
     margin-top: -5px;
-    margin-bottom: 0px;
     text-align: center;
     font-size: 0.8rem;
     line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.toolbar_container .zoom_percent {
     opacity: 0.7;
 }
 
-/* ---- Page mode ---- */
-.page_mode_container {
-    display: flex;
-    justify-content: center;
-}
-.dual_page_toggler {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.page_mode_icon {
+/* ---- Fit & page mode ---- */
+.fit_icon,
+.page_mode_icon,
+.cmt_icon {
+    display: block;
     width: 25px;
     height: 25px;
+    object-fit: contain;
 }
 
 /* ---- Download ---- */
@@ -90,8 +102,6 @@
     transform: translateY(-50%) translateX(8px);
     display: flex;
     flex-direction: column;
-    gap: 0px;
-    padding: 0px 0px;
     opacity: 0;
     pointer-events: none;
     white-space: nowrap;
@@ -107,37 +117,28 @@
     pointer-events: auto;
 }
 
-/* ---- Comment toggle ---- */
-.cmt_toggle_container {
-    display: flex;
-    justify-content: center;
+/* ---- Phone contents button ---- */
+.toc_btn {
+    display: none;
+    font-size: 15px;
+}
+.toc_btn span:first-child {
     position: relative;
+    z-index: 1;
 }
-.cmt_toggle_btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.cmt_toggle_btn.disabled {
-    cursor: not-allowed;
-    opacity: 0.35;
-}
-.cmt_toggle_btn.disabled:hover {
-    opacity: 0.35;
-}
-.cmt_icon {
-    width: 25px;
-    height: 25px;
+.toc_btn .glow-ul {
+    --rgb: 250, 250, 250;
+    height: 18px;
+    margin-top: -10px;
 }
 
-/* Floating hint that follows the cursor */
-.cmt-hint,
-.page-mode-hint {
+/* Hint that follows the cursor over a control */
+.tool-hint {
     position: fixed;
     left: 0;
     top: 0;
     padding: 6px 10px;
-    background: rgba(20, 20, 20, 0.9);
+    background: var(--chip);
     color: #fff;
     font-size: 0.8rem;
     white-space: nowrap;
@@ -148,7 +149,37 @@
     transition: opacity 0.15s ease;
     z-index: 1000;
 }
-.cmt-hint.visible,
-.page-mode-hint.visible {
+.tool-hint.visible {
     opacity: 1;
+}
+
+/* ---- Phones: a bar along the bottom ---- */
+@media (max-width: 760px) {
+    .toolbar_container {
+        zoom: 1;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+        background: linear-gradient(to top, #000 72%, rgba(0, 0, 0, 0));
+    }
+    body.st-cover .toolbar_container {
+        transform: translateY(14px);
+    }
+    .zoom_container,
+    .fit_btn,
+    .dual_page_toggler,
+    .download_container {
+        display: none;
+    }
+    .toc_btn {
+        display: block;
+    }
+    .toast {
+        bottom: 84px;
+    }
 }
