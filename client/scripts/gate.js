@@ -43,15 +43,13 @@ function showGate(note = "") {
     return new Promise((resolve) => {
         const gate = el("div", "gate");
         gate.setAttribute("role", "dialog");
-        gate.setAttribute("aria-labelledby", "gate-title");
+        gate.setAttribute("aria-label", "Nhập mã truy cập");
 
+        const brand = el("div", "gate-brand");
         const logo = el("img", "gate-logo");
         logo.src = "assets/icons/logo.svg";
         logo.alt = "L9622, nội san khối Lý";
-
-        const title = el("h1", "gate-title", "Nhập mã truy cập");
-        title.id = "gate-title";
-        const lead = el("p", "gate-lead", "L9622 đang trong giai đoạn thử nghiệm. Nhập mã 8 số để đọc.");
+        brand.append(logo, el("span", "gate-tag", "Beta"));
 
         const field = el("label", "gate-field");
         const input = el("input", "gate-input");
@@ -70,7 +68,7 @@ function showGate(note = "") {
         const msg = el("p", "gate-msg");
         msg.setAttribute("role", "status");
 
-        gate.append(logo, title, lead, field, msg);
+        gate.append(brand, field, msg);
         document.body.append(gate);
 
         const say = (text, warn = false) => {
