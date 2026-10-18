@@ -35,32 +35,13 @@
             </div>
         </nav>
 
-        <!-- Cover: its stripes are drawn by cover.js so they can fly to the contents bar -->
+        <!-- Cover: page 1 of the PDF (tools/pages/build.mjs), a picture only -->
         <section class="cover_container" aria-label="Bìa">
-            <div class="cover-card">
-                <img
-                    src="assets/icons/cover_shape_bare.svg"
-                    alt="Bìa L9622: Nội san khối Lý, Trường Phổ thông Năng Khiếu, L1922"
-                    class="cover-art"
-                />
-                <div class="cover-stripes"></div>
-            </div>
-            <div class="cover-label" aria-hidden="true">
-                <span class="cover-label-code"></span>
-                <span class="glow-ul glow"></span>
-                <span class="cover-label-years"></span>
-            </div>
-            <div class="cover-cue">
-                <button class="cue-main" type="button">
-                    <span class="cue-main-text">Bắt đầu đọc</span>
-                    <span class="glow-ul glow"></span>
-                </button>
-                <span class="cue-sub">hoặc chọn một khoá trên bìa</span>
-                <button class="cue-alt" type="button" hidden>Đọc từ đầu</button>
-                <svg class="cue-arrow" viewBox="0 0 18 18" fill="none" stroke="white" stroke-width="1.5" aria-hidden="true">
-                    <path d="M9 2v13M3 9l6 6 6-6" />
-                </svg>
-            </div>
+            <img
+                src="assets/pages/cover.svg"
+                alt="Bìa L9622: Nội san khối Lý, 1996–2022, bởi PTNK L1922"
+                class="cover-card"
+            />
         </section>
 
         <!-- Pages are built from scripts/book.js -->
@@ -75,7 +56,6 @@
             </div>
             <div class="toc-rows"></div>
         </nav>
-        <div class="stripe-flyer" aria-hidden="true"></div>
 
         <div class="toolbar_container">
             <div class="zoom_container">

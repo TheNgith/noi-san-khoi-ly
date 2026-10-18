@@ -149,7 +149,10 @@ export function updateZoomUI() {
     refreshHint(btn);
 }
 
-const shiftOf = (box) => parseFloat(box.style.getPropertyValue("--shift")) || 0;
+// Every row and spread reads --shift from the reader, so all pages slide together.
+// Measured as drawn (mid-slide too), so a page's unshifted place is exact.
+const shiftOf = (box) => new DOMMatrix(getComputedStyle(box).transform).m41;
+const setShift = (px) => $("#reader").style.setProperty("--shift", px + "px");
 
 // Room between a single page's margin (where it sits unshifted) and the toolbar
 function marginRoom(p) {
@@ -168,27 +171,26 @@ export function updateThreadWidths() {
 
 // ───────── Room for a thread ─────────
 
-// A thread or comment form slides its page (or spread) away from that side
-// just enough to fit, so the passage stays in view. A page sits centred
-// otherwise, however far it is zoomed.
+// A thread or comment form slides the pages (all of them, so the column
+// stays one column) away from that side just enough to fit, so the passage
+// stays in view. A page sits centred otherwise, however far it is zoomed.
 export function makeRoom(p) {
     if (!state.dual) {
         const room = marginRoom(p), w = Math.min(THREAD_MAX, Math.max(THREAD_W, room));
         p.single.row.style.setProperty("--thread-w", w + "px");
-        p.single.row.style.setProperty("--shift", -Math.max(0, w - room) + "px");
+        setShift(-Math.max(0, w - room));
         return;
     }
-    const sp = p.dualSlot.spread;
-    const cur = shiftOf(sp);
+    const cur = shiftOf(p.dualSlot.spread);
     const m = p.margin.getBoundingClientRect();
     const shift = p.dualSlot.side === "l"
         ? Math.max(0, $(".toc-spine").getBoundingClientRect().right + 20 - (m.right - cur - THREAD_W))
         : -Math.max(0, m.left - cur + THREAD_W - ($(".toolbar_container").getBoundingClientRect().left - 20));
-    sp.style.setProperty("--shift", shift + "px");
+    setShift(shift);
 }
 
-export function releaseRoom(p) {
-    (state.dual ? p.dualSlot.spread : p.single.row).style.setProperty("--shift", "0px");
+export function releaseRoom() {
+    setShift(0);
 }
 
 // ───────── Dual-page spreads ─────────
@@ -232,9 +234,8 @@ export function setDual(on) {
             p.box = p.single.row;
         }
         p.paper.classList.toggle("side-l", on && p.dualSlot.side === "l");
-        p.dualSlot.spread.style.setProperty("--shift", "0px");
-        p.single.row.style.setProperty("--shift", "0px");
     });
+    setShift(0);
 
     setPageWidth();
     restoreAnchor(anchor);

@@ -15,7 +15,7 @@ import {
 } from "./comments.js";
 import { initScroll, onScroll, routeHash } from "./navigation.js";
 import { initToc, closeToc, sizeSpine } from "./toc.js";
-import { initCover, setStage, playOpening } from "./cover.js";
+import { setStage, playOpening } from "./cover.js";
 import { initToolbar } from "./toolbar.js";
 import { initEggs } from "./eggs.js";
 
@@ -77,7 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
     buildReader();
     initReader();
     initToc();
-    initCover();
     initComments();
     initEggs();
     initToolbar();
@@ -105,10 +104,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // A link to a page or comment goes straight there; otherwise the book opens on its cover
     const deepLink = initialHash.startsWith("c-") || /^trang-\d+$/.test(initialHash);
     if (deepLink) {
-        setStage("reading", { instant: true });
+        setStage("reading");
         state.stageLockUntil = Date.now() + 1800;
     } else {
-        setStage("cover", { instant: true });
+        setStage("cover");
         playOpening();
     }
     onScroll(true);

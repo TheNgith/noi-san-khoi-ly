@@ -294,7 +294,7 @@ export function closeThread(silent) {
     g.bubble.style.top = g.y * 100 + "%";
     g.bubble.setAttribute("aria-expanded", "false");
     g.page.box.classList.remove("has-open");
-    releaseRoom(g.page);
+    releaseRoom();
     hideAnchor(g.page);
     state.open = null;
     document.body.classList.remove("has-open");
@@ -485,7 +485,7 @@ export function closeComposer(silent) {
     c.f.remove();
     c.p.box.classList.remove("has-open");
     if (!state.open) {
-        releaseRoom(c.p);
+        releaseRoom();
         hideAnchor(c.p);
     }
     state.composer = null;

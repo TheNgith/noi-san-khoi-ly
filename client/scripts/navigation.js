@@ -4,7 +4,7 @@
  * to pages, lines and links.
  */
 
-import { $, store, isMobile, smooth } from "./dom.js";
+import { $, isMobile, smooth } from "./dom.js";
 import { state, pages } from "./state.js";
 import { setStage } from "./cover.js";
 import { openById } from "./comments.js";
@@ -48,7 +48,6 @@ export function onScroll(force) {
     const changed = cur !== state.current || force === true;
     if (changed) {
         state.current = cur;
-        if (cur) store.set("l9622-last", String(cur.n));
         if (!state.open && !state.composer) setHash(cur ? "trang-" + cur.n : "");
         markCurrent(cur);
     }

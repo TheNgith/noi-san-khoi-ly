@@ -5,7 +5,7 @@
  * hands its colour over to its name, beside where the stripe was.
  */
 
-import { BLOCKS, COVER_CLASSES, PAGES } from "./book.js";
+import { BLOCKS, PAGES } from "./book.js";
 import { $, el, isMobile } from "./dom.js";
 import { state } from "./state.js";
 import { gotoChapter } from "./navigation.js";
@@ -13,18 +13,16 @@ import { gotoChapter } from "./navigation.js";
 const OPEN_DELAY = 170;  // ms the pointer must rest before the names unfold
 const CLOSE_DELAY = 240;
 
-// One row per section of the book; front matter and Lời kết stay untinted
-const ROWS = BLOCKS.map(({ key, label, kind, rgb, pages }) => ({
+// One row per section of the book, except the printed Mục lục (this bar is one);
+// front matter and Lời kết stay untinted
+const ROWS = BLOCKS.filter((b) => b.key !== "muc-luc").map(({ key, label, kind, rgb, pages }) => ({
     key, label,
     rgb: kind === "class" || kind === "section" ? rgb : null,
     live: pages.length > 0,
-    cohort: COVER_CLASSES.includes(key),
 }));
 const rowByChapter = {};
 
 let spine, rowsEl, openT = null, closeT = null;
-
-export const rowFor = (code) => rowByChapter[code].el;
 
 export function sizeSpine() {
     const pitch = rowsEl.clientHeight / ROWS.length;
@@ -39,7 +37,7 @@ function rowIndexAt(y) {
 export function openToc(origin) {
     clearTimeout(closeT);
     if (spine.classList.contains("open") || state.stage !== "reading") return;
-    const o = origin ?? (state.current ? rowByChapter[state.current.ch].i : 0);
+    const o = origin ?? rowByChapter[state.current?.ch]?.i ?? 0;
     // Names ripple out from the row under the pointer
     ROWS.forEach((r) => r.el.style.setProperty("--d", Math.abs(r.i - o)));
     spine.classList.add("open");
@@ -66,8 +64,9 @@ export function initToc() {
     rowsEl = $(".toc-rows", spine);
 
     ROWS.forEach((r, i) => {
-        const a = el("a", "toc-row" + (r.live ? " live" : " off") + (r.cohort ? " cohort" : "") + (r.rgb ? " tinted" : ""));
+        const a = el("a", "toc-row" + (r.live ? " live" : " off") + (r.rgb ? " tinted" : ""));
         a.style.setProperty("--rgb", r.rgb || "250,250,250");
+        a.style.setProperty("--i", i);
         a.append(el("span", "toc-band glow"), el("span", "toc-label", r.label));
         if (r.live) {
             a.href = "#trang-" + PAGES[r.key][0].n;
