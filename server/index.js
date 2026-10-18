@@ -3,7 +3,7 @@ const fs = require("fs").promises;
 const path = require("path");
 
 const app = express();
-const PORT = 3300;
+const PORT = process.env.PORT || 3300;
 
 // Path to your JSON "database"
 const DATA_FILE = path.join(__dirname, "data", "comments.json");
@@ -123,6 +123,54 @@ app.post("/api/comments", async (req, res) => {
     res.status(201).json(newComment);
   } catch (err) {
     console.error("Error in POST /api/comments:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// "Liên hệ" messages. Kept out of git (they hold readers' emails) and
+// never served back: read them in the file.
+const MESSAGES_FILE = path.join(__dirname, "data", "messages.json");
+const MAX_EMAIL = 254;
+
+// POST /api/messages
+// Body: { name, email?, text }; createdAt is set here.
+app.post("/api/messages", async (req, res) => {
+  try {
+    const name = trimmed(req.body.name);
+    const email = trimmed(req.body.email);
+    const text = trimmed(req.body.text);
+
+    if (!name || !text) {
+      return res.status(400).json({ error: "name and text are required" });
+    }
+    if (name.length > MAX_AUTHOR || text.length > MAX_TEXT || email.length > MAX_EMAIL) {
+      return res.status(400).json({ error: `name is limited to ${MAX_AUTHOR} characters, email to ${MAX_EMAIL} and text to ${MAX_TEXT}` });
+    }
+    if (email && !/^[^\s@]+@[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "email is not valid" });
+    }
+
+    let messages = [];
+    try {
+      const data = await fs.readFile(MESSAGES_FILE, "utf8");
+      if (data.trim()) messages = JSON.parse(data);
+    } catch (err) {
+      if (err.code !== "ENOENT") throw err;
+    }
+
+    const message = {
+      id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2),
+      name,
+      ...(email && { email }),
+      text,
+      createdAt: new Date().toISOString()
+    };
+    messages.push(message);
+    await fs.writeFile(MESSAGES_FILE, JSON.stringify(messages, null, 2), "utf8");
+
+    res.status(201).json({ id: message.id, createdAt: message.createdAt });
+  } catch (err) {
+    console.error("Error in POST /api/messages:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

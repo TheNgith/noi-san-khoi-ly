@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=Inter:wght@400&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="styles/global.css" />
+        <link rel="stylesheet" href="styles/colors.css" />
+        <link rel="stylesheet" href="styles/navbar.css" />
+        <link rel="stylesheet" href="styles/footer.css" />
+        <link rel="stylesheet" href="styles/contact.css" />
+        <title>Liên hệ – L9622</title>
+    </head>
+    <body class="page-contact">
+        <nav class="navbar">
+            <a href="index.html"><img src="assets/icons/logo.svg" alt="L9622, nội san khối Lý" class="logo" /></a>
+            <div class="button_container">
+                <a href="about.html" class="link_container_navbar">
+                    <div class="link_title_navbar">Giới thiệu</div>
+                    <div class="link_underline_navbar default"></div>
+                </a>
+                <a href="contact.html" class="link_container_navbar active" aria-current="page">
+                    <div class="link_title_navbar">Liên hệ</div>
+                    <div class="link_underline_navbar default"></div>
+                </a>
+            </div>
+        </nav>
+
+        <main class="contact">
+            <p class="contact_lead">
+                Nếu có bất kì ý kiến hoặc câu chuyện nào muốn đóng góp cho tập san, xin hãy liên hệ với
+                chúng mình.
+            </p>
+
+            <form class="contact_form" id="contact-form" novalidate>
+                <label class="contact_label" for="contact-name">Tên:</label>
+                <span class="contact_field">
+                    <input id="contact-name" name="name" type="text" maxlength="40" autocomplete="name" required />
+                    <span class="glow default contact_glow"></span>
+                </span>
+
+                <label class="contact_label" for="contact-email">Email:</label>
+                <span class="contact_field">
+                    <input id="contact-email" name="email" type="email" maxlength="254" autocomplete="email" />
+                    <span class="glow default contact_glow"></span>
+                </span>
+
+                <label class="contact_label" for="contact-text">Lời nhắn:</label>
+                <span class="contact_field">
+                    <textarea id="contact-text" name="text" maxlength="2000" rows="7" required></textarea>
+                    <span class="glow default contact_glow"></span>
+                </span>
+
+                <div class="contact_foot">
+                    <p class="contact_msg" id="contact-msg" role="status" aria-live="polite"></p>
+                    <button type="submit" class="link_container_navbar contact_send">
+                        <span class="link_title_navbar">Gửi ngay</span>
+                        <span class="link_underline_navbar default"></span>
+                    </button>
+                </div>
+            </form>
+        </main>
+
+        <!-- Same footer as about.html. TODO: the real profile URLs (not in the design yet). -->
+        <footer class="site_footer">
+            <a class="link_container_navbar" aria-disabled="true">
+                <span class="link_title_navbar">Facebook</span>
+                <span class="link_underline_navbar default"></span>
+            </a>
+            <a class="link_container_navbar" aria-disabled="true">
+                <span class="link_title_navbar">Instagram</span>
+                <span class="link_underline_navbar default"></span>
+            </a>
+            <a class="link_container_navbar" aria-disabled="true">
+                <span class="link_title_navbar">Youtube</span>
+                <span class="link_underline_navbar default"></span>
+            </a>
+            <a class="link_container_navbar" aria-disabled="true">
+                <span class="link_title_navbar">Linkedin</span>
+                <span class="link_underline_navbar default"></span>
+            </a>
+        </footer>
+        <script type="module" src="scripts/bars.js"></script>
+        <script type="module" src="scripts/contact.js"></script>
+    </body>
+</html>
