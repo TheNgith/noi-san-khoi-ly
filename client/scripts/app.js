@@ -18,6 +18,7 @@ import { initToc, closeToc, sizeSpine } from "./toc.js";
 import { setStage, playOpening } from "./cover.js";
 import { initToolbar } from "./toolbar.js";
 import { initEggs } from "./eggs.js";
+import { unlocked } from "./gate.js";
 
 // Clicks outside an open thread or form close it. With nothing open, a click
 // on a page comments on that line (or opens the thread already on it).
@@ -70,7 +71,9 @@ function onWheel(e) {
     setZoom((state.pageW / state.fitH) * Math.exp(-e.deltaY * 0.0025), captureAnchor(e.clientY));
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    // The book opens only once the visitor is past the gate
+    await unlocked;
     const initialHash = decodeURIComponent(location.hash.slice(1));
     try { history.scrollRestoration = "manual"; } catch { /* unsupported */ }
 
