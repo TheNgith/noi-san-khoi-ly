@@ -72,7 +72,7 @@ svg * {
     --sheet: #0c0c0c;
     --warn: #ff8a8a;
 
-    --nav-h: var(--navbar-height-visual, 102.6px);
+    --nav-h: var(--navbar-height-visual, 78.3px);
     --gap: 15px;         /* page ↔ margin */
     --bubble: 30px;
     --line-glow: 18px;   /* thickness of a line's highlight and the name underline that continues it */
