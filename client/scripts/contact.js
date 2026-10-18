@@ -1,7 +1,7 @@
 /**
- * "Liên hệ" page: sends the form to the server.
- * Without a server (the static GitHub Pages build) the send fails and the
- * message stays in the form, with the error shown, so it can be retried.
+ * "Liên hệ" page: sends the form to Firestore (api.js).
+ * If the send fails the message stays in the form, with the error shown,
+ * so it can be retried.
  */
 
 import { sendMessage } from "./api.js";
