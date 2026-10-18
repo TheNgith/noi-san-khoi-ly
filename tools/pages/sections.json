@@ -1,5 +1,5 @@
 {
-    "_doc": "Printed page ranges of all4t10don.pdf, taken from the running footers (the contents page on p. 4 misprints 0003's start as 38). PDF page index = printed page number. Pages not listed are left out of the site: 1 (cover; the site has its own), 12-13 and 329 (blank), 328 (repeats the colophon), 330 (back cover).",
+    "_doc": "Printed page ranges of all4t10don.pdf, taken from the running footers (the contents page on p. 4 misprints 0003's start as 38). PDF page index = printed page number. Pages not listed are left out of the site: 1 (the cover, built separately as cover.svg), 12-13 and 329 (blank), 328 (repeats the colophon), 330 (back cover).",
     "sections": [
         { "key": "muc-luc", "label": "Mục lục", "kind": "front", "from": 2, "to": 7 },
         { "key": "loi-noi-dau", "label": "Lời nói đầu", "kind": "front", "from": 8, "to": 9 },

@@ -3,7 +3,8 @@
    plus its name. At rest only the stripes show, the current chapter's a
    little longer. Opened, a black panel
    slides out from the edge, the stripes fold away and the names take their
-   place, each picking up its stripe's colour on the way in. */
+   place, each picking up its stripe's colour on the way in. On the cover
+   the stripes wait off the left edge. */
 
 .toc-spine {
     position: fixed;
@@ -79,7 +80,7 @@ body.st-cover .toc-spine {
     position: absolute;
     left: 0;
     right: 0;
-    top: 40px;
+    top: 56px;
     bottom: 0;
     display: flex;
     flex-direction: column;
@@ -104,7 +105,21 @@ body.st-cover .toc-spine {
     width: 14px;
     transform-origin: left center;
     opacity: 0.25;
-    transition: opacity 0.45s var(--ease-out), transform 0.3s var(--ease-out);
+    translate: calc(-100% - 12px) 0;
+    transition:
+        opacity 0.45s var(--ease-out),
+        transform 0.3s var(--ease-out),
+        translate 200ms var(--ease-in);
+}
+
+/* Off the left edge until reading starts; then the stripes slide in from
+   the left, top row first, and leave together when the cover returns */
+body.st-reading .toc-band {
+    translate: 0 0;
+    transition:
+        opacity 0.45s var(--ease-out),
+        transform 0.3s var(--ease-out),
+        translate 520ms var(--ease-out) calc(var(--i, 0) * 12ms);
 }
 
 .toc-row.live .toc-band { opacity: 0.8; }
@@ -118,16 +133,9 @@ body.st-cover .toc-spine {
     transform: scaleX(1.7);
 }
 
-/* Hidden on the cover; the class stripes arrive by flight (cover.js) and
-   show at full colour for a moment after landing */
-body.st-cover .toc-band { opacity: 0 !important; transition-delay: 0ms; }
-body.flying .toc-row.cohort .toc-band { opacity: 0 !important; transition: none; }
-body.landing .toc-row.cohort .toc-band { opacity: 1 !important; transition: none; }
-body:not(.st-cover) .toc-row:not(.cohort) .toc-band { transition-delay: 0.35s; }
-
 /* Opening folds the stripes against the edge, rippling out from the pointer
    (--d = rows away); closing, they grow back as the panel leaves.
-   `body` outranks the delayed-entry rule above. */
+   `body` outranks the slide-in rule above. */
 body .toc-spine.open .toc-row .toc-band {
     opacity: 0;
     transform: scaleX(0);

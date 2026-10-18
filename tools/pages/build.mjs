@@ -9,6 +9,8 @@
  *   client/assets/pages/NNN.svg   the page, vector (pdftocairo + svgo)
  *   tools/pages/text/NNN.json     its words with boxes (build cache, not shipped)
  * and then client/scripts/pages.gen.js, the page list both readers import.
+ * PDF page 1, the cover, becomes client/assets/pages/cover.svg (with
+ * `--only`, only when 1 is listed); it is not part of the page list.
  *
  * Needs poppler (pdftocairo, pdftotext): brew install poppler
  */
@@ -121,6 +123,17 @@ function folioOf(lines) {
     return null;
 }
 
+/* ---------- Cover ---------- */
+
+// The cover's "96 – 22" has its dash under the stripe column. Each stripe is
+// two touching halves, and browsers let the black dash show through the
+// anti-aliased seams as a dotted line (poppler's raster hides it). Drop any
+// glyph whose baseline falls inside the column (x < 90, y 136–431 pt).
+const dropCoveredGlyphs = (svg) =>
+    svg.replace(/<use xlink:href="#glyph-[^"]+" x="([\d.]+)" y="([\d.]+)"\/>/g, (use, x, y) =>
+        Number(x) < 90 && Number(y) > 136 && Number(y) < 431 ? "" : use
+    );
+
 /* ---------- One page ---------- */
 
 const SVGO = {
@@ -128,15 +141,21 @@ const SVGO = {
     plugins: [{ name: "preset-default" }],
 };
 
-async function buildPage(n, tmp) {
-    const raw = path.join(tmp, `${pad(n)}.svg`);
+// PDF page n → out (a file name in OUT_SVG); returns the raw and final sizes
+async function renderSvg(n, out, tmp, fix = (svg) => svg) {
+    const raw = path.join(tmp, out);
     await execFile("pdftocairo", ["-svg", "-f", n, "-l", n, PDF, raw]);
-    const cairo = await readFile(raw, "utf8");
+    const cairo = fix(await readFile(raw, "utf8"));
     // The PDF's paper is implicit; give the page a white sheet so it doesn't
     // take the reader's background colour
     const paper = thinGradients(cairo).replace(/(<svg\b[^>]*>)/, `$1<rect width="${PAGE_W}" height="${PAGE_H}" fill="#fff"/>`);
     const svg = optimize(paper, SVGO).data;
-    await writeFile(path.join(OUT_SVG, `${pad(n)}.svg`), svg);
+    await writeFile(path.join(OUT_SVG, out), svg);
+    return { raw: cairo.length, size: Buffer.byteLength(svg) };
+}
+
+async function buildPage(n, tmp) {
+    const { raw, size } = await renderSvg(n, `${pad(n)}.svg`, tmp);
 
     const { stdout } = await execFile("pdftotext", ["-bbox-layout", "-f", n, "-l", n, PDF, "-"], {
         maxBuffer: 64 << 20,
@@ -144,7 +163,7 @@ async function buildPage(n, tmp) {
     const lines = parseWords(stdout);
     await writeFile(path.join(OUT_TEXT, `${pad(n)}.json`), JSON.stringify({ n, w: PAGE_W, h: PAGE_H, lines }));
 
-    return { n, raw: cairo.length, size: Buffer.byteLength(svg), folio: folioOf(lines) };
+    return { n, raw, size, folio: folioOf(lines) };
 }
 
 /* ---------- Manifest ---------- */
@@ -213,9 +232,14 @@ async function main() {
         if (++done % 25 === 0) console.log(`  ${done}/${todo.length}`);
         return r;
     });
+    if (!ONLY || ONLY.includes(1)) {
+        const { size } = await renderSvg(1, "cover.svg", tmp, dropCoveredGlyphs);
+        console.log(`  cover.svg ${Math.round(size / 1024)} KB`);
+    }
     await rm(tmp, { recursive: true, force: true });
     await writeFile(OUT_MANIFEST, manifest(sections));
 
+    if (!results.length) return;
     const total = results.reduce((s, r) => s + r.size, 0);
     const kb = (b) => `${Math.round(b / 1024)} KB`;
     console.log(`\n${results.length} pages, ${kb(total)} (${kb(total / results.length)} average)`);

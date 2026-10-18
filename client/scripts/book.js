@@ -19,9 +19,6 @@ export const CHAPTERS = [
     ["1619", "63,63,153"], ["1720", "103,46,146"], ["1821", "147,42,144"], ["1922", "189,36,143"],
 ];
 
-// The 23 stripes printed on the cover, bottom to top: 9699 … 1821
-export const COVER_CLASSES = CHAPTERS.slice(0, 23).map((c) => c[0]);
-
 export const SECTIONS = [
     ["Thầy Phúc", "188,79,23"], ["Thầy Ngọc", "0,101,83"], ["Cô Quỳnh Anh", "87,57,98"],
     ["Thầy Hoàng", "91,116,134"], ["Đội tuyển Lý", "0,65,95"], ["Trung Thu", "254,195,17"],
