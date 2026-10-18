@@ -1,0 +1,56 @@
+rules_version = '2';
+
+// Testing phase: no accounts. A passcode is a document passcodes/<code>,
+// made by hand in the Firebase console and never written in this repo.
+// Anyone may fetch one by its exact id (that is how the gate checks a code),
+// but nobody may list them. Everything else lives under a passcode, so the
+// code is the key to it. The checks mirror what server/index.js enforced.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function str(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+
+    function unit(v) {
+      return v is number && v >= 0 && v <= 1;
+    }
+
+    match /passcodes/{code} {
+      allow get: if true;
+      allow list, write: if false;
+
+      function real() {
+        return exists(/databases/$(database)/documents/passcodes/$(code));
+      }
+
+      // { imageId, xPct, yPct, text, author, cls?, chapter?, createdAt }
+      match /comments/{id} {
+        allow read: if real();
+        allow create: if real()
+          && request.resource.data.keys().hasAll(['imageId', 'xPct', 'yPct', 'text', 'author', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['imageId', 'xPct', 'yPct', 'text', 'author', 'cls', 'chapter', 'createdAt'])
+          && str(request.resource.data.imageId, 1, 100)
+          && unit(request.resource.data.xPct)
+          && unit(request.resource.data.yPct)
+          && str(request.resource.data.text, 1, 2000)
+          && str(request.resource.data.author, 1, 40)
+          && (!('cls' in request.resource.data) || str(request.resource.data.cls, 1, 40))
+          && (!('chapter' in request.resource.data) || str(request.resource.data.chapter, 1, 100))
+          && request.resource.data.createdAt == request.time;
+      }
+
+      // "Liên hệ": { name, email?, text, createdAt }. Written from the site,
+      // read only in the Firebase console (they hold readers' emails).
+      match /messages/{id} {
+        allow create: if real()
+          && request.resource.data.keys().hasAll(['name', 'text', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['name', 'email', 'text', 'createdAt'])
+          && str(request.resource.data.name, 1, 40)
+          && str(request.resource.data.text, 1, 2000)
+          && (!('email' in request.resource.data) || str(request.resource.data.email, 3, 254))
+          && request.resource.data.createdAt == request.time;
+      }
+    }
+  }
+}
