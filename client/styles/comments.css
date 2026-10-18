@@ -365,11 +365,38 @@ body.has-open .comment-bubble:not(.open) {
 }
 
 .composer-send {
+    position: relative;
     font-weight: 600;
 }
 
-.composer-send:hover {
-    background: rgba(var(--rgb), 0.28);
+/* Hover: the name's underline, drawn across the word */
+.composer-send::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: -2px;
+    height: var(--line-glow);
+    background: linear-gradient(
+        to bottom,
+        rgba(var(--rgb), 0) 0%,
+        rgba(var(--rgb), 0.5) 25%,
+        rgba(var(--rgb), 1) 50%,
+        rgba(var(--rgb), 0.5) 75%,
+        rgba(var(--rgb), 0) 100%
+    );
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 240ms var(--ease-out);
+    pointer-events: none;
+}
+
+.composer-send:hover::after {
+    transform: scaleX(1);
+}
+
+.margin-l .composer-send::after {
+    transform-origin: right center;
 }
 
 .composer-cancel {
