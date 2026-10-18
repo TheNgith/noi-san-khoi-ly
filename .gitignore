@@ -5,3 +5,5 @@ to-do.md
 *.pdf
 # Build cache: word boxes per page
 tools/pages/text/
+# Contact-form messages hold readers' emails; never commit them
+server/data/messages.json

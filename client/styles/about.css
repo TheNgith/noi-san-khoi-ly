@@ -117,7 +117,7 @@
 @media (max-width: 900px) {
     .about {
         padding-top: 24px;
-        padding-bottom: 96px;
+        padding-bottom: 160px; /* clears the footer */
     }
 
     .about_lead,

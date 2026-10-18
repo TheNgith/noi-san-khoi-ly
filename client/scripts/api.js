@@ -26,3 +26,14 @@ export async function saveComment(comment) {
     if (!res.ok) throw new Error(`POST /api/comments failed with status ${res.status}`);
     return res.json();
 }
+
+// "Liên hệ" form: { name, email?, text }. Throws so the page can say it failed.
+export async function sendMessage(message) {
+    const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(message),
+    });
+    if (!res.ok) throw new Error(`POST /api/messages failed with status ${res.status}`);
+    return res.json();
+}

@@ -1,14 +1,17 @@
 @import url(colors.css);
 
-/* Figma "Frame 24": 1512 × 114, shared by every screen */
+/* Figma "Frame 24", shared by every screen. Its height fits the content:
+   17px above and below the links (53px from the top of "Giới thiệu" to the
+   end of its underline, which hangs past the logo). */
 :root {
-    --navbar-height: 114px; /* design px — use inside zoomed UI */
+    --navbar-height: 87px; /* design px — use inside zoomed UI */
     --navbar-height-visual: calc(var(--navbar-height) * var(--ui-scale));
 }
 
+/* logo.svg is 284 × 44; at 44px "L9622" keeps the old logo's size */
 .logo {
     display: block;
-    height: 83px;
+    height: 44px;
 }
 
 .navbar {

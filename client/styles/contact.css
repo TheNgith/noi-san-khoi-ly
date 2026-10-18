@@ -1,0 +1,151 @@
+/* "Liên hệ" page — Figma: nội san / UI / MacBook Pro 14" - 9 (1512px frame) */
+
+.page-contact {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.contact {
+    zoom: var(--ui-scale);
+    padding: 37px 20px 200px; /* clears the footer */
+    font-family: "Inter", sans-serif;
+    color: #fff;
+}
+
+.contact_lead {
+    max-width: 905px; /* wraps after "nào" and "liên", as drawn */
+    font-family: "Inter", sans-serif;
+    font-size: 48px;
+    letter-spacing: -0.04em;
+    line-height: 1.21; /* Figma "auto" for Inter: 58px at 48px */
+}
+
+/* Labels sit at x 925 in the frame; "Gửi ngay" ends at x 1479 */
+.contact_form {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 12px;
+    row-gap: 24px;
+    width: 554px;
+    margin: 44px 0 0 905px;
+    font-size: 20px;
+    line-height: 24px;
+}
+
+.contact_label {
+    font-family: "Inter", sans-serif;
+}
+
+.contact_field {
+    position: relative;
+    display: block;
+}
+
+.contact_field input,
+.contact_field textarea {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: none;
+    color: #fff;
+    font: inherit;
+    font-family: "Inter", sans-serif;
+}
+
+.contact_field textarea {
+    min-height: 168px; /* puts "Gửi ngay" 305px below "Tên:", as drawn */
+    resize: none;
+    field-sizing: content;
+}
+
+/* The site's glow under each line: faint at rest, full while typing */
+.contact_glow {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 11px;
+    height: var(--line-glow);
+    opacity: 0.18;
+    transition: opacity 160ms var(--ease-out);
+}
+
+.contact_field:has(textarea) .contact_glow {
+    top: auto;
+    bottom: -7px;
+}
+
+.contact_field:focus-within .contact_glow {
+    opacity: 0.55;
+}
+
+.contact_field:has(:user-invalid) .contact_glow {
+    --rgb: 255, 138, 138;
+    opacity: 0.55;
+}
+
+/* Status on the button's row, so "Gửi ngay" never moves */
+.contact_foot {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 17px;
+}
+
+.contact_msg {
+    padding-top: 5px;
+    color: var(--ink-2);
+}
+
+.contact_msg.warn {
+    color: var(--warn);
+}
+
+.contact_send {
+    flex: none;
+    margin-left: auto;
+    padding: 0;
+    color: #fff;
+    text-align: left;
+}
+
+.contact_send[disabled] {
+    opacity: 0.48;
+    cursor: progress;
+}
+
+.contact_send .link_title_navbar,
+.contact_send .link_underline_navbar {
+    display: block;
+}
+
+.contact_send .link_underline_navbar {
+    opacity: 0.85;
+    transition: opacity 160ms;
+}
+
+.contact_send:hover .link_underline_navbar {
+    opacity: 1;
+}
+
+@media (max-width: 900px) {
+    .contact {
+        padding-top: 24px;
+        padding-bottom: 160px; /* clears the footer */
+    }
+
+    .contact_lead {
+        font-size: 32px;
+    }
+
+    .contact_form {
+        width: auto;
+        max-width: 554px;
+        margin: 48px 0 0;
+    }
+}
