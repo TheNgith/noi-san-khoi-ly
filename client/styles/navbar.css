@@ -8,7 +8,7 @@
     --navbar-height-visual: calc(var(--navbar-height) * var(--ui-scale));
 }
 
-/* logo.svg is 284 × 44; at 44px "L9622" keeps the old logo's size */
+/* logo.svg is 260 × 44 */
 .logo {
     display: block;
     height: 44px;
