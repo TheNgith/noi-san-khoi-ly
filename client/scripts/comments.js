@@ -14,7 +14,7 @@ import { scrollToY, setHash } from "./navigation.js";
 
 const CLUSTER_PX = 34;     // comments closer than this share one bubble
 const NEAR_BUBBLE_PX = 22; // pointer this close to a bubble's line previews it; a click opens it
-const TRACE_IDLE_MS = 1400; // the pointer line fades once the pointer rests this long
+const TRACE_IDLE_MS = 500; // the pointer line fades once the pointer rests this long
 const CLICK_SLOP_PX = 6;    // a press that moves further than this is a drag, not a click
 const LONG_PRESS_MS = 480;
 

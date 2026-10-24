@@ -163,8 +163,8 @@ body.dual .page-row {
 
 /* is-trace: the line under the pointer, where a click would comment.
    It moves with the pointer at once and fades out once the pointer rests. */
-.page-anchor.is-trace .anchor-band { opacity: 0.22; transition: opacity 120ms; }
-.page-anchor.is-trace.is-idle .anchor-band { opacity: 0; transition: opacity 700ms var(--ease-in); }
+.page-anchor.is-trace .anchor-band { opacity: 0.22; transition: opacity 80ms; }
+.page-anchor.is-trace.is-idle .anchor-band { opacity: 0; transition: opacity 220ms var(--ease-out); }
 
 /* is-preview: a hovered bubble, or the pointer on its line */
 .page-anchor.is-preview .anchor-band { opacity: 0.3; }

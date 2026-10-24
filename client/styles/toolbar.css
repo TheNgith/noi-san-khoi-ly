@@ -74,6 +74,19 @@ body.st-cover .toolbar_container {
     height: 25px;
     object-fit: contain;
 }
+/* Wider (or taller) than the others only by its arrows; the margins keep
+   the column's spacing */
+.fit_icon.width {
+    width: 31px;
+    margin: 0 -3px;
+}
+.fit_icon.height {
+    height: 31px;
+    margin: -3px 0;
+}
+.fit_icon * {
+    vector-effect: none; /* scales with the icon, like the <img> icons */
+}
 
 /* ---- Download ---- */
 .download_container {

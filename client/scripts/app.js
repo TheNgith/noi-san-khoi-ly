@@ -6,7 +6,7 @@
 import { isMobile, mqMobile } from "./dom.js";
 import { state } from "./state.js";
 import {
-    buildReader, initReader, applyLayout, captureAnchor, setZoom, zoomStep, setDual,
+    buildReader, initReader, applyLayout, captureAnchor, setZoom, zoomStep, atFitWidth, setDual,
     updateZoomUI, updateDualUI, updateThreadWidths,
 } from "./reader.js";
 import {
@@ -59,8 +59,7 @@ function onKeydown(e) {
     }
     else if (e.key === "+" || e.key === "=") setZoom(zoomStep(1));
     else if (e.key === "-" || e.key === "_") setZoom(zoomStep(-1));
-    else if (k === "w") setZoom(99);
-    else if (k === "h") setZoom(1);
+    else if (k === "f") setZoom(atFitWidth() ? 1 : 99); // same toggle as the fit button
     else if (k === "d") setDual(!state.dual);
 }
 

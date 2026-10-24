@@ -126,23 +126,31 @@ export function setZoom(z, anchor) {
     applyLayout(anchor);
 }
 
-// Next 10% step from the current true size
+// The percentage shown runs from 50% to 100% (fit height) to 200% (fit
+// width), whatever the window: above fit-height the true ratio is spread
+// evenly over 100–200%. A window too narrow for that shows true ratios.
+const SHOWN_AT_FIT_WIDTH = 2;
+const zoomMax = () => state.maxW / state.fitH;
+const shownZoom = (z) => z <= 1 || zoomMax() <= 1 ? z : 1 + (z - 1) / (zoomMax() - 1) * (SHOWN_AT_FIT_WIDTH - 1);
+const trueZoom = (s) => s <= 1 || zoomMax() <= 1 ? s : 1 + (s - 1) * (zoomMax() - 1) / (SHOWN_AT_FIT_WIDTH - 1);
+
+// Next 10% step of the shown percentage, as a true size
 export function zoomStep(dir) {
-    const z = state.pageW / state.fitH;
-    return dir > 0 ? Math.floor(z * 10 + 1e-6) / 10 + 0.1 : Math.ceil(z * 10 - 1e-6) / 10 - 0.1;
+    const s = shownZoom(state.pageW / state.fitH);
+    return trueZoom(dir > 0 ? Math.floor(s * 10 + 1e-6) / 10 + 0.1 : Math.ceil(s * 10 - 1e-6) / 10 - 0.1);
 }
 
 export const atFitWidth = () => state.pageW >= state.maxW - 1;
 
 export function updateZoomUI() {
     if (isMobile()) return;
-    $(".zoom_percent").textContent = Math.round((state.pageW / state.fitH) * 100) + "%";
+    $(".zoom_percent").textContent = Math.round(shownZoom(state.pageW / state.fitH) * 100) + "%";
     $(".zoom_in_btn").disabled = atFitWidth();
     $(".zoom_out_btn").disabled = state.pageW / state.fitH <= 0.501;
     const w = atFitWidth();
     $(".fit_icon.width").hidden = w;
     $(".fit_icon.height").hidden = !w;
-    const label = w ? "Vừa chiều cao (H)" : "Vừa chiều rộng (W)";
+    const label = w ? "Vừa chiều cao (F)" : "Vừa chiều rộng (F)";
     const btn = $(".fit_btn");
     btn.dataset.hint = label;
     btn.setAttribute("aria-label", label);
