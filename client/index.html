@@ -63,19 +63,20 @@
                 <button class="zoom_in_btn" type="button" data-hint="Phóng to (+)" aria-label="Phóng to">
                     <img src="assets/icons/zoomIn.svg" alt="" />
                 </button>
-                <button class="zoom_percent" type="button" data-hint="Về vừa chiều cao (H)" aria-label="Mức thu phóng">100%</button>
+                <button class="zoom_percent" type="button" data-hint="Về vừa chiều cao" aria-label="Mức thu phóng">100%</button>
                 <button class="zoom_out_btn" type="button" data-hint="Thu nhỏ (−)" aria-label="Thu nhỏ">
                     <img src="assets/icons/zoomOut.svg" alt="" />
                 </button>
             </div>
-            <button class="fit_btn" type="button" data-hint="Vừa chiều rộng (W)" aria-label="Vừa chiều rộng">
-                <svg class="fit_icon width" viewBox="0 0 40 40" fill="none" stroke="white" stroke-width="2">
-                    <path d="M11 5h18v30H11z" />
-                    <path d="M1 20h38M6 15l-5 5 5 5M34 15l5 5-5 5" />
+            <button class="fit_btn" type="button" data-hint="Vừa chiều rộng (F)" aria-label="Vừa chiều rộng">
+                <!-- The page is the same rectangle, and line, as single_page_mode.svg at 25px -->
+                <svg class="fit_icon width" viewBox="0 0 31 25" fill="none" stroke="white" stroke-width="1.5625">
+                    <path d="M7.6875 .868h15.625v23.264H7.6875z" />
+                    <path d="M.8 12.5h29.4M4 9.3l-3.2 3.2 3.2 3.2M27 9.3l3.2 3.2-3.2 3.2" />
                 </svg>
-                <svg class="fit_icon height" viewBox="0 0 40 40" fill="none" stroke="white" stroke-width="2" hidden>
-                    <path d="M8 10h24v20H8z" />
-                    <path d="M20 1v38M15 6l5-5 5 5M15 34l5 5 5-5" />
+                <svg class="fit_icon height" viewBox="0 0 25 31" fill="none" stroke="white" stroke-width="1.5625" hidden>
+                    <path d="M4.6875 3.868h15.625v23.264H4.6875z" />
+                    <path d="M12.5 .8v29.4M9.3 4l3.2-3.2 3.2 3.2M9.3 27l3.2 3.2 3.2-3.2" />
                 </svg>
             </button>
             <button class="dual_page_toggler" type="button" data-hint="Đọc với trang đôi (D)" aria-label="Đọc với trang đôi" aria-pressed="false">

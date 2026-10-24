@@ -142,7 +142,7 @@ export function updateZoomUI() {
     const w = atFitWidth();
     $(".fit_icon.width").hidden = w;
     $(".fit_icon.height").hidden = !w;
-    const label = w ? "Vừa chiều cao (H)" : "Vừa chiều rộng (W)";
+    const label = w ? "Vừa chiều cao (F)" : "Vừa chiều rộng (F)";
     const btn = $(".fit_btn");
     btn.dataset.hint = label;
     btn.setAttribute("aria-label", label);
