@@ -1,7 +1,7 @@
 /* Footer of the Giới thiệu and Liên hệ pages — Figma "Rectangle 9" + "Frame 25"
    on MacBook Pro 14" - 9: a 960px bar fixed to the bottom-left, its links
    spread across 912px. Its height fits the links: 12px above and below
-   (47px from the top of a title to the end of its underline). Slides away
+   (34px from the top of a title to the end of its underline). Slides away
    with the navbar (scripts/bars.js). */
 
 .site_footer {
@@ -14,8 +14,8 @@
     justify-content: space-between;
     align-items: flex-start;
     width: 960px;
-    height: 71px;
-    padding: 12px 26px 0 22px;
+    height: 58px;
+    padding: 12px 24px 0 20px;
     background: #000;
     transition: transform 0.3s ease;
     will-change: transform;
