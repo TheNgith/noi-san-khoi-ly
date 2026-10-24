@@ -1,23 +1,22 @@
 @import url(colors.css);
 
-/* Figma "Frame 24", shared by every screen. Its height fits the content:
-   17px above and below the links (53px from the top of "Giới thiệu" to the
-   end of its underline, which hangs past the logo). */
+/* Shared by every screen: the logo with 14px above and below it, the links
+   level with it (their underline hangs a little lower). */
 :root {
-    --navbar-height: 87px; /* design px — use inside zoomed UI */
+    --navbar-height: 64px; /* design px — use inside zoomed UI */
     --navbar-height-visual: calc(var(--navbar-height) * var(--ui-scale));
 }
 
 /* logo.svg is 260 × 44 */
 .logo {
     display: block;
-    height: 44px;
+    height: 36px;
 }
 
 .navbar {
     display: flex;
     gap: 20px;
-    padding: 17px 28px 0 22px;
+    padding: 14px 24px 0 20px;
     height: var(--navbar-height);
     align-items: flex-start;
     justify-content: space-between;
@@ -44,8 +43,8 @@
 
 .button_container {
     display: flex;
-    gap: 40px;
-    margin-top: 6px;
+    gap: 28px;
+    margin-top: 7px; /* centres the words on the logo */
     width: fit-content;
 }
 
@@ -81,16 +80,44 @@
 }
 
 
+/* The same size in the navbar, the footer and "Gửi ngay" */
+.navbar .link_title_navbar,
+.site_footer .link_title_navbar,
+.contact_send .link_title_navbar {
+    font-size: 18px;
+    white-space: nowrap;
+}
+
+.navbar .link_underline_navbar,
+.site_footer .link_underline_navbar,
+.contact_send .link_underline_navbar {
+    top: -10px;
+    height: 22px;
+}
+
 .navbar a {
     display: block;
     color: inherit;
     text-decoration: none;
 }
 
+/* Phones: logo and links still share one line */
+@media (max-width: 480px) {
+    .navbar {
+        gap: 12px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .button_container {
+        gap: 16px;
+    }
+}
+
 /* Reader page on phones: a smaller bar with just the logo */
 @media (max-width: 760px) {
     .page-reader {
-        --nav-h: 64px;
+        --nav-h: 56px;
     }
 
     .page-reader .navbar {
@@ -100,7 +127,7 @@
     }
 
     .page-reader .logo {
-        height: 44px;
+        height: 36px;
     }
 
     .page-reader .button_container {
