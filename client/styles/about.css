@@ -24,56 +24,6 @@
     max-width: 1462px;
 }
 
-/* Inline "L9622" mark that opens the lead sentence */
-.about_mark {
-    position: relative;
-    display: inline-block;
-    width: 97.4px;
-    height: 44px;
-    margin: 0 3px 0 1px;
-    vertical-align: baseline;
-}
-
-.about_mark_text {
-    position: absolute;
-    top: 0;
-    left: 6.4%;
-    font-family: "Archivo", sans-serif;
-    font-weight: 200;
-    font-size: 40px;
-    letter-spacing: 0;
-    line-height: normal;
-    white-space: nowrap;
-}
-
-.about_mark_bar {
-    position: absolute;
-    background: #fff;
-}
-
-.about_mark_bar--left {
-    top: 18.11%;
-    bottom: 0.79%;
-    left: 0;
-    width: 2.43px;
-}
-
-.about_mark_bar--under-l,
-.about_mark_bar--under-num {
-    bottom: 0;
-    height: 2.43px;
-}
-
-.about_mark_bar--under-l {
-    left: 0;
-    width: 24.95px;
-}
-
-.about_mark_bar--under-num {
-    left: 31.66%;
-    right: 2.53%;
-}
-
 .about_columns,
 .about_class {
     display: grid;
@@ -123,12 +73,6 @@
     .about_lead,
     .about_class_lead {
         font-size: 32px;
-    }
-
-    .about_mark {
-        transform: scale(0.67);
-        transform-origin: left bottom;
-        margin-right: -28px;
     }
 
     .about_columns,
