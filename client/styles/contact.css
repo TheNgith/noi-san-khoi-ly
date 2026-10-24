@@ -62,29 +62,19 @@
     field-sizing: content;
 }
 
-/* The site's glow under each line: faint at rest, full while typing */
-.contact_glow {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 11px;
-    height: var(--line-glow);
-    opacity: 0.18;
-    transition: opacity 160ms var(--ease-out);
+/* A plain rule under each field, like the one between comments */
+.contact_field {
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+    transition: border-color 160ms var(--ease-out);
 }
 
-.contact_field:has(textarea) .contact_glow {
-    top: auto;
-    bottom: -7px;
+.contact_field:focus-within {
+    border-bottom-color: var(--ink-3);
 }
 
-.contact_field:focus-within .contact_glow {
-    opacity: 0.55;
-}
-
-.contact_field:has(:user-invalid) .contact_glow {
-    --rgb: 255, 138, 138;
-    opacity: 0.55;
+.contact_field:has(:user-invalid) {
+    border-bottom-color: var(--warn);
 }
 
 /* Status on the button's row, so "Gửi ngay" never moves */
