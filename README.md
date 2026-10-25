@@ -2,6 +2,8 @@
 
 Web reader for media of **Nội san khối Lý Project**
 
+Live at **https://noisankhoily.ngthinh.com**, deployed from `client/` by GitHub Pages on every push to `main`.
+
 ## Step 1: Install Node.js
 
 Node.js is required to run the website locally.
@@ -57,9 +59,19 @@ git clone https://github.com/TheNgith/noi-san-khoi-ly.git
    npm start
    ```
 
-5. Open your web browser and go to: **http://localhost:3000**
+5. Open your web browser and go to: **http://localhost:3300**
 
 The website should now be running.
+
+## Step 4: Let Your Browser Through App Check
+
+The database only answers the real website, so on your computer the passcode box says it can't check the code. To let your browser through:
+
+1. Open the website as in Step 3, then open the browser's developer console (**F12**, then the **Console** tab)
+2. Find the line `App Check debug token: ...` and copy the token
+3. In the [Firebase console](https://console.firebase.google.com/project/noisankhoily/appcheck), open the web app's **⋮** menu › **Manage debug tokens** and add it
+
+Each browser needs its own token. Never commit or share one: it works like a key to the database.
 
 ## Stopping the Website
 
