@@ -33,8 +33,10 @@ body.st-cover .toolbar_container {
     opacity: 1;
     transition: opacity 0.2s ease;
 }
-.toolbar_container button:hover {
-    opacity: 0.5;
+@media (hover: hover) {
+    .toolbar_container button:hover {
+        opacity: 0.5;
+    }
 }
 .toolbar_container button:disabled {
     opacity: 0.25;
@@ -101,8 +103,10 @@ body.st-cover .toolbar_container {
     display: flex;
     align-items: center;
 }
-.download_icon:hover {
-    opacity: 0.5;
+@media (hover: hover) {
+    .download_icon:hover {
+        opacity: 0.5;
+    }
 }
 .download_icon img {
     width: 25px;
@@ -166,8 +170,11 @@ body.st-cover .toolbar_container {
     opacity: 1;
 }
 
-/* ---- Phones: a bar along the bottom ---- */
-@media (max-width: 760px) {
+/* ---- Phones: a bar along the bottom ----
+   Same condition as dom.js mqMobile. The buttons are a fingertip tall; the
+   bar's padding makes up the rest of the old 12px / 24px. It steps aside
+   with the navbar while reading down the page (navigation.js). */
+@media (max-width: 760px), (pointer: coarse) and (max-height: 500px) {
     .toolbar_container {
         zoom: 1;
         top: auto;
@@ -177,11 +184,23 @@ body.st-cover .toolbar_container {
         margin: 0;
         flex-direction: row;
         justify-content: space-between;
-        padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+        padding: 2px max(14px, env(safe-area-inset-right, 0px)) calc(2px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px));
         background: linear-gradient(to top, #000 72%, rgba(0, 0, 0, 0));
+        transition:
+            opacity 300ms var(--ease-out),
+            transform 300ms ease;
+    }
+    .toolbar_container.curled {
+        transform: translateY(100%);
     }
     body.st-cover .toolbar_container {
         transform: translateY(14px);
+    }
+    .toolbar_container .toc_btn,
+    .toolbar_container .cmt_toggle_btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
     }
     .zoom_container,
     .fit_btn,
@@ -193,6 +212,12 @@ body.st-cover .toolbar_container {
         display: block;
     }
     .toast {
-        bottom: 84px;
+        bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+        font-size: 14px;
+    }
+    /* The long-press hint gives way to whatever was opened */
+    body.toc-open .toast,
+    body:has(#comment-sheet.on) .toast {
+        opacity: 0;
     }
 }

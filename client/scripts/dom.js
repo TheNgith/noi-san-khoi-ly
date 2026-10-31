@@ -17,8 +17,12 @@ export const store = {
     set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } },
 };
 
-export const mqMobile = matchMedia("(max-width: 760px)");
+// Phones, upright or on their side: one column, dots, a bottom sheet.
+// The CSS media queries for phones use the same condition.
+export const mqMobile = matchMedia("(max-width: 760px), (pointer: coarse) and (max-height: 500px)");
 export const isMobile = () => mqMobile.matches;
+// A touch screen with no hover (phones, tablets): no key hints, Enter starts a new line
+export const isTouch = () => matchMedia("(hover: none) and (pointer: coarse)").matches;
 export const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 export const smooth = reduced ? "auto" : "smooth";
 
