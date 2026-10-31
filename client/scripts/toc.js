@@ -8,10 +8,11 @@
 import { BLOCKS, PAGES } from "./book.js";
 import { $, el, isMobile } from "./dom.js";
 import { state } from "./state.js";
-import { gotoChapter } from "./navigation.js";
+import { gotoChapter, holdBack, releaseBack } from "./navigation.js";
 
 const OPEN_DELAY = 170;  // ms the pointer must rest before the names unfold
 const CLOSE_DELAY = 240;
+const CLOSING_MS = 260;  // phones: the list keeps its spacing while the names fade
 
 // One row per section of the book, except the printed Mục lục (this bar is one);
 // front matter and Lời kết stay untinted
@@ -22,7 +23,7 @@ const ROWS = BLOCKS.filter((b) => b.key !== "muc-luc").map(({ key, label, kind, 
 }));
 const rowByChapter = {};
 
-let spine, rowsEl, openT = null, closeT = null;
+let spine, rowsEl, openT = null, closeT = null, closingT = null;
 
 export function sizeSpine() {
     const pitch = rowsEl.clientHeight / ROWS.length;
@@ -40,8 +41,16 @@ export function openToc(origin) {
     const o = origin ?? rowByChapter[state.current?.ch]?.i ?? 0;
     // Names ripple out from the row under the pointer
     ROWS.forEach((r) => r.el.style.setProperty("--d", Math.abs(r.i - o)));
+    clearTimeout(closingT);
+    spine.classList.remove("closing");
     spine.classList.add("open");
     document.body.classList.add("toc-open");
+    if (isMobile()) {
+        // Phones list the names a finger apart (toc.css); start at the chapter being read
+        const row = ROWS[o].el;
+        rowsEl.scrollTop = row.offsetTop - (rowsEl.clientHeight - row.offsetHeight) / 2;
+        holdBack(closeToc);
+    }
 }
 
 export function closeToc() {
@@ -50,6 +59,12 @@ export function closeToc() {
     if (!spine.classList.contains("open")) return;
     spine.classList.remove("open");
     document.body.classList.remove("toc-open");
+    releaseBack(closeToc);
+    if (isMobile()) {
+        spine.classList.add("closing");
+        clearTimeout(closingT);
+        closingT = setTimeout(() => spine.classList.remove("closing"), CLOSING_MS);
+    }
 }
 
 // The chapter being read: a slightly longer stripe at rest, bold with its glow when open
@@ -104,7 +119,18 @@ export function initToc() {
         pt = null;
         if (spine.classList.contains("open")) closeT = setTimeout(closeToc, CLOSE_DELAY);
     });
-    spine.addEventListener("focusin", () => openToc());
+    // A touch on the closed bar opens it, instead of jumping blind to the
+    // section whose stripe is under the finger (tablets have no hover)
+    let pointer = "mouse", pressedAt = -Infinity;
+    spine.addEventListener("pointerdown", (e) => { pointer = e.pointerType; pressedAt = e.timeStamp; });
+    spine.addEventListener("click", (e) => {
+        if (pointer === "mouse" || spine.classList.contains("open")) return;
+        e.preventDefault();
+        e.stopPropagation();
+        openToc(rowIndexAt(e.clientY));
+    }, true);
+    // Keyboard focus opens it; the focus a tap gives a link doesn't
+    spine.addEventListener("focusin", (e) => { if (e.timeStamp - pressedAt > 800) openToc(); });
     spine.addEventListener("focusout", (e) => { if (!spine.contains(e.relatedTarget)) closeToc(); });
     $(".toc-veil").addEventListener("click", closeToc);
 

@@ -40,9 +40,11 @@ body.opening .cover-card { animation: cover-in 900ms var(--ease-out) 120ms both;
    Phones
    ========================= */
 
-@media (max-width: 760px) {
+/* Same condition as dom.js mqMobile: as wide as the pages, or as tall as
+   the screen below the navbar allows (a phone on its side) */
+@media (max-width: 760px), (pointer: coarse) and (max-height: 500px) {
     .page-reader {
-        --base-page-width: min(calc(100vw - 32px), calc((100svh - 200px) * 0.705));
+        --base-page-width: min(calc(100vw - 32px), calc((100svh - var(--nav-h) - 48px) * 0.705));
     }
 
     .cover_container {

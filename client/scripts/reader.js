@@ -81,7 +81,12 @@ export function buildReader() {
 
 export function measure() {
     const vw = document.documentElement.clientWidth;
-    if (isMobile()) { state.pageW = Math.max(200, vw - 32); return; }
+    if (isMobile()) {
+        // The reader's side padding grows past a phone's notch when it lies on its side
+        const cs = getComputedStyle($("#reader"));
+        state.pageW = Math.max(200, vw - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+        return;
+    }
     state.fitH = Math.max(240, (innerHeight - 64) * PAGE_RATIO);
     state.maxW = state.dual
         ? Math.max(240, (vw - READER_PAD - 2 * (BUBBLE_MARGIN + SPREAD_GAP) - 8) / 2)
@@ -199,6 +204,24 @@ export function makeRoom(p) {
 
 export function releaseRoom() {
     setShift(0);
+}
+
+// Whether a thread fits beside the page with the page still clear of the
+// contents bar and the toolbar. Touch tablets open the bottom sheet instead
+// when it doesn't (comments.js), rather than sliding the page off screen.
+export function roomFits(p) {
+    const spine = $(".toc-spine").getBoundingClientRect().right + 12;
+    const tools = $(".toolbar_container").getBoundingClientRect().left - 20;
+    if (!state.dual) {
+        const left = p.paper.getBoundingClientRect().left - shiftOf(p.single.row);
+        return THREAD_W - marginRoom(p) <= left - spine;
+    }
+    const sp = p.dualSlot.spread, cur = shiftOf(sp), m = p.margin.getBoundingClientRect();
+    const left = $(".slot-l", sp).getBoundingClientRect().left - cur;
+    const right = $(".slot-r", sp).getBoundingClientRect().right - cur;
+    return p.dualSlot.side === "l"
+        ? spine + 8 - (m.right - cur - THREAD_W) <= tools - right
+        : m.left - cur + THREAD_W - tools <= left - spine;
 }
 
 // ───────── Dual-page spreads ─────────

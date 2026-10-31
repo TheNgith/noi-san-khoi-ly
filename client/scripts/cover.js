@@ -7,7 +7,7 @@
 import { reduced } from "./dom.js";
 import { state } from "./state.js";
 import { closeToc } from "./toc.js";
-import { hideTrace } from "./comments.js";
+import { hideTrace, hintLongPress } from "./comments.js";
 
 const OPENING_MS = 1100;
 
@@ -19,6 +19,8 @@ export function setStage(s) {
     if (s === "cover") {
         closeToc();
         hideTrace();
+    } else {
+        hintLongPress();
     }
 }
 

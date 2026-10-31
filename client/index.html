@@ -103,9 +103,19 @@
 
         <div class="sheet-scrim" id="sheet-scrim"></div>
         <div class="comment-sheet" id="comment-sheet" role="dialog" aria-label="Bình luận">
-            <div class="sheet-grip"></div>
-            <div class="sheet-bar glow"></div>
+            <!-- Drag this part down to close (comments.js initSheetDrag) -->
+            <div class="sheet-top">
+                <div class="sheet-grip"></div>
+                <div class="sheet-bar glow"></div>
+                <div class="sheet-head">
+                    <span class="sheet-title"></span>
+                    <button class="sheet-close" type="button" aria-label="Đóng">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                    </button>
+                </div>
+            </div>
             <div class="sheet-body"></div>
+            <div class="sheet-foot"></div>
         </div>
         <div class="tool-hint" aria-hidden="true"></div>
         <div class="toast" id="toast" role="status"></div>
