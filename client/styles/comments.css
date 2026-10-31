@@ -206,6 +206,7 @@ body.has-open .comment-bubble:not(.open) {
     padding-left: calc(var(--bubble) + 20px);
     font-size: 1rem;
     line-height: 1.45;
+    white-space: pre-line; /* the line breaks the writer typed */
     overflow-wrap: anywhere;
 }
 
@@ -391,8 +392,14 @@ body.has-open .comment-bubble:not(.open) {
     pointer-events: none;
 }
 
-.composer-send:hover::after {
-    transform: scaleX(1);
+@media (hover: hover) {
+    .composer-send:hover::after {
+        transform: scaleX(1);
+    }
+
+    .composer-cancel:hover {
+        color: #fff;
+    }
 }
 
 .margin-l .composer-send::after {
@@ -401,10 +408,6 @@ body.has-open .comment-bubble:not(.open) {
 
 .composer-cancel {
     color: var(--ink-2);
-}
-
-.composer-cancel:hover {
-    color: #fff;
 }
 
 /* =========================
@@ -494,7 +497,8 @@ body.cmts-off .comment-dots {
 }
 
 /* =========================
-   Phones: dots on the page edge, threads in a bottom sheet
+   Phones: dots on the page edge, threads in a bottom sheet.
+   Touch tablets use the sheet too when the margin is too narrow.
    ========================= */
 
 .comment-dots {
@@ -521,6 +525,14 @@ body.cmts-off .comment-dots {
     animation: bubble-in 520ms var(--ease-spring) both;
 }
 
+/* A fingertip's reach around the dot */
+.comment-dot::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+}
+
 .dot-icon {
     width: 17px;
     height: 17px;
@@ -531,25 +543,44 @@ body.has-open .comment-dot {
     opacity: 0.35;
 }
 
+/* Above the navbar and the phone's bottom bar. --kb lifts it over the
+   on-screen keyboard and --vvh is the height left beside it (comments.js) */
 .comment-sheet {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
-    z-index: 80;
-    max-height: 64vh;
-    overflow: auto;
-    overscroll-behavior: contain;
-    padding: 6px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    bottom: var(--kb, 0px);
+    z-index: 1110;
+    display: flex;
+    flex-direction: column;
+    max-width: 640px;
+    max-height: min(64vh, calc(var(--vvh, 100vh) - 24px));
+    margin: 0 auto;
+    padding: 0 max(18px, env(safe-area-inset-right, 0px)) 0 max(18px, env(safe-area-inset-left, 0px));
     border-radius: 16px 16px 0 0;
     background: var(--sheet);
     box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.6);
-    transform: translateY(105%);
-    transition: transform 360ms var(--ease-out);
+    transform: translateY(calc(100% + 24px));
+    visibility: hidden;
+    transition: transform 360ms var(--ease-out), visibility 0s 360ms;
 }
 
 .comment-sheet.on {
     transform: none;
+    visibility: visible;
+    transition: transform 360ms var(--ease-out);
+}
+
+/* Follows the finger while its top is dragged */
+.comment-sheet.dragging {
+    transition: none;
+}
+
+.sheet-top {
+    flex: none;
+    padding-top: 6px;
+    touch-action: none;
+    cursor: grab;
 }
 
 .sheet-grip {
@@ -562,21 +593,148 @@ body.has-open .comment-dot {
 
 .sheet-bar {
     height: 14px;
-    margin: 0 -18px 8px;
+    margin: 0 calc(-1 * max(18px, env(safe-area-inset-right, 0px))) 4px calc(-1 * max(18px, env(safe-area-inset-left, 0px)));
 }
 
 .sheet-head {
-    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.sheet-title {
     font-size: 11.5px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--ink-3);
 }
 
+.sheet-close {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -12px;
+    color: var(--ink-2);
+}
+
+.sheet-close svg,
+.sheet-step svg {
+    display: block;
+    width: 22px;
+    height: 22px;
+}
+
+.sheet-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+}
+
+.comment-sheet.has-foot .sheet-body {
+    padding-bottom: 6px;
+}
+
+/* Under a thread: ↑ n / total ↓, and "Trả lời" */
+.sheet-nav {
+    display: flex;
+    align-items: center;
+    padding: 2px 0 env(safe-area-inset-bottom, 0px);
+    border-top: 1px solid var(--rule);
+}
+
+.sheet-step {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 48px;
+    color: #fff;
+}
+
+.sheet-step:first-child {
+    margin-left: -12px;
+}
+
+.sheet-step:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+.sheet-count {
+    min-width: 6ch;
+    font-size: 13px;
+    text-align: center;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Like the bottom bar's "Mục lục", underlined in the section's colour */
+.sheet-reply {
+    margin-left: auto;
+    padding: 12px 4px 4px;
+    font-size: 16px;
+}
+
+.sheet-reply span:first-child {
+    position: relative;
+    z-index: 1;
+    padding: 0 3px;
+}
+
+.sheet-reply .glow-ul {
+    height: 18px;
+    margin-top: -10px;
+}
+
+/* Thread and form in the sheet: no black card, and type a phone can read.
+   Inputs stay at 16px or more, or iOS zooms the page in when they're focused. */
+.comment-thread.in-sheet,
+.comment-composer.in-sheet {
+    background: none;
+}
+
+.comment-sheet .comment-author,
+.comment-sheet .comment-text,
+.comment-composer.in-sheet #composer-name,
+.comment-composer.in-sheet #composer-cls,
+.comment-composer.in-sheet #composer-text {
+    font-size: 16px;
+}
+
+.comment-sheet .comment-time {
+    font-size: 13px;
+}
+
+.comment-sheet .comment-time button {
+    padding: 10px 4px;
+    margin: -10px 0;
+}
+
+/* The thread already on the line sits above a reply */
+.comment-thread.in-sheet + .comment-composer {
+    margin-top: 4px;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+}
+
+.comment-composer.in-sheet .composer-actions button {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 15px;
+}
+
+.comment-composer.in-sheet .composer-actions {
+    margin-right: -16px;
+}
+
 .sheet-scrim {
     position: fixed;
     inset: 0;
-    z-index: 70;
+    z-index: 1100;
     background: rgba(0, 0, 0, 0.3);
     opacity: 0;
     pointer-events: none;
@@ -588,7 +746,8 @@ body.has-open .comment-dot {
     pointer-events: auto;
 }
 
-@media (max-width: 760px) {
+/* Same condition as dom.js mqMobile */
+@media (max-width: 760px), (pointer: coarse) and (max-height: 500px) {
     .comment-dots {
         display: block;
         position: absolute;
@@ -596,7 +755,17 @@ body.has-open .comment-dot {
         z-index: 4;
         pointer-events: none;
     }
+}
 
+/* A phone on its side: the sheet may use more of the short screen */
+@media (pointer: coarse) and (max-height: 500px) {
+    .comment-sheet {
+        max-height: min(88vh, calc(var(--vvh, 100vh) - 12px));
+    }
+}
+
+/* No physical keyboard to name */
+@media (hover: none) {
     .composer-keys {
         display: none;
     }

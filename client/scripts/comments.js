@@ -6,17 +6,18 @@
  * and the phone layout (dots on the page edge, threads in a bottom sheet).
  */
 
-import { $, el, store, isMobile } from "./dom.js";
+import { $, el, store, isMobile, isTouch, showToast } from "./dom.js";
 import { state, pages, pageById, comments } from "./state.js";
 import { fetchAllComments, saveComment } from "./api.js";
-import { makeRoom, releaseRoom } from "./reader.js";
-import { scrollToY, setHash } from "./navigation.js";
+import { makeRoom, releaseRoom, roomFits } from "./reader.js";
+import { scrollToY, setHash, holdBack, releaseBack } from "./navigation.js";
 
 const CLUSTER_PX = 34;     // comments closer than this share one bubble
 const NEAR_BUBBLE_PX = 22; // pointer this close to a bubble's line previews it; a click opens it
 const TRACE_IDLE_MS = 500; // the pointer line fades once the pointer rests this long
 const CLICK_SLOP_PX = 6;    // a press that moves further than this is a drag, not a click
 const LONG_PRESS_MS = 480;
+const HINT_KEY = "l9622-press-hint"; // phones: how many visits have shown the long-press hint
 
 const clamp01 = (v) => Math.min(1, Math.max(0, Number(v) || 0));
 
@@ -253,21 +254,63 @@ function buildThread(g, container) {
     g.items.forEach((c, i) => container.append(itemEl(c, i, g)));
 }
 
+const sheetThread = (g, instant) => {
+    const wrap = el("div", "comment-thread in-sheet" + (instant ? " instant" : ""));
+    buildThread(g, wrap);
+    return wrap;
+};
+
+// Phones show threads and the form in the bottom sheet; so do touch tablets
+// whenever the margin is too narrow to open them beside the page
+const inSheet = (p) => isMobile() || (isTouch() && !roomFits(p));
+
+// The thread already on a line, if any (a comment there would join it)
+const clusterAt = (p, y) => p.clusters.find((g) => Math.abs(g.y - y) * p.paper.offsetHeight < CLUSTER_PX);
+
+function sheetButton(cls, label, html, onClick) {
+    const b = el("button", cls);
+    b.type = "button";
+    if (label) b.setAttribute("aria-label", label);
+    b.innerHTML = html;
+    b.addEventListener("click", (e) => { e.stopPropagation(); onClick(); });
+    return b;
+}
+
+const CHEVRON = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+
+// Under a thread in the sheet: step through the book's comments (the phone's
+// ↑ / ↓), and reply, which comments on the same line
+function threadFoot(g) {
+    const list = allClusters(), i = list.indexOf(g);
+    const foot = el("div", "sheet-nav");
+    const prev = sheetButton("sheet-step", "Bình luận trước", CHEVRON("M6 15l6-6 6 6"), () => step(-1));
+    const next = sheetButton("sheet-step", "Bình luận sau", CHEVRON("M6 9l6 6 6-6"), () => step(1));
+    prev.disabled = next.disabled = list.length < 2;
+    const count = el("span", "sheet-count", `${i + 1} / ${list.length}`);
+    count.setAttribute("aria-label", `Bình luận ${i + 1} trên ${list.length} trong sách`);
+    const reply = sheetButton("sheet-reply", "", '<span>Trả lời</span><span class="glow-ul glow"></span>', () => {
+        const c = g.items[0];
+        openComposer(g.page, c.x, c.y);
+    });
+    foot.append(prev, count, next, reply);
+    return foot;
+}
+
 export function openCluster(g, { scroll = true, instant = false } = {}) {
     closeComposer(true);
     if (state.open) closeThread(true);
     clearPreview();
     hideTrace();
     reveal(g.page);
-    state.open = { g };
+    const sheet = inSheet(g.page);
+    state.open = { g, sheet };
     document.body.classList.add("has-open");
     const first = g.items[0];
-    if (isMobile()) {
-        const wrap = el("div", "comment-thread in-sheet" + (instant ? " instant" : ""));
-        buildThread(g, wrap);
-        openSheet(wrap, g.page.rgb, `Trang ${g.page.n} · ${g.page.name} · ${g.items.length} bình luận`);
+    if (sheet) {
+        openSheet(sheetThread(g, instant), g.page.rgb, `Trang ${g.page.n} · ${g.page.name} · ${g.items.length} bình luận`, threadFoot(g));
         if (scroll) scrollToY(g.page, g.y, 0.2);
     } else {
+        closeSheet();
         const th = $(".comment-thread", g.bubble);
         th.classList.toggle("instant", instant);
         buildThread(g, th);
@@ -289,7 +332,7 @@ export function openCluster(g, { scroll = true, instant = false } = {}) {
 
 export function closeThread(silent) {
     if (!state.open) return;
-    const g = state.open.g;
+    const { g, sheet } = state.open;
     g.bubble.classList.remove("open");
     g.bubble.style.top = g.y * 100 + "%";
     g.bubble.setAttribute("aria-expanded", "false");
@@ -298,7 +341,7 @@ export function closeThread(silent) {
     hideAnchor(g.page);
     state.open = null;
     document.body.classList.remove("has-open");
-    if (isMobile() && !silent) closeSheet();
+    if (sheet && !silent) closeSheet();
     if (!silent) setHash(state.current ? "trang-" + state.current.n : "");
 }
 
@@ -360,7 +403,7 @@ const pageOf = (target) => {
 
 // Follows the pointer only while it moves over a page; resting, it fades
 function onReaderPointerMove(e) {
-    if (e.pointerType !== "mouse" || isMobile() || !state.commentsOn || state.open || state.composer || state.stage !== "reading") return hideTrace();
+    if (e.pointerType !== "mouse" || !state.commentsOn || state.open || state.composer || state.stage !== "reading") return hideTrace();
     if (e.target.closest(".comment-bubble, .egg-spot, .egg-stage") || document.body.classList.contains("egg-playing")) return hideTrace();
     const p = pageOf(e.target);
     if (!p) { hideTrace(); clearPreview(); return; }
@@ -378,9 +421,11 @@ function onReaderPointerMove(e) {
     }, TRACE_IDLE_MS);
 }
 
-// A click on a page opens the form at that line, or the thread whose line it is
+// A click on a page opens the form at that line, or the thread whose line it is.
+// Phones comment with a long-press instead, so a tap stays a tap; a mouse in a
+// narrow window still clicks.
 export function clickPage(e) {
-    if (isMobile() || !state.commentsOn || state.stage !== "reading") return;
+    if ((isMobile() && lastPointer !== "mouse") || !state.commentsOn || state.stage !== "reading") return;
     const p = pageOf(e.target);
     if (!p) return;
     if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > CLICK_SLOP_PX) return;
@@ -396,7 +441,11 @@ const textWidth = (() => {
     return (s, font) => { ctx.font = font; return ctx.measureText(s).width; };
 })();
 
-export function openComposer(p, x, y) {
+// A form closed without sending or "Huỷ" leaves its fields here; the next form starts with them
+let draft = null;
+
+// focus: false when a long-press opens it; the finger's release focuses it (initTouch)
+export function openComposer(p, x, y, { focus = true } = {}) {
     if (!state.commentsOn) return;
     if (state.open) closeThread(true);
     closeComposer(true);
@@ -406,8 +455,8 @@ export function openComposer(p, x, y) {
     f.noValidate = true;
     f.innerHTML =
         '<div class="composer-who">' +
-        '<input id="composer-name" name="name" maxlength="40" autocomplete="name" placeholder="Tên của bạn" aria-label="Tên của bạn">' +
-        '<input id="composer-cls" name="cls" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Khóa" aria-label="Khóa">' +
+        '<input id="composer-name" name="name" maxlength="40" autocomplete="name" autocapitalize="words" enterkeyhint="next" placeholder="Tên của bạn" aria-label="Tên của bạn">' +
+        '<input id="composer-cls" name="cls" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="next" placeholder="Khóa" aria-label="Khóa">' +
         '</div>' +
         '<div class="composer-underline glow"></div>' +
         '<textarea id="composer-text" name="text" rows="2" maxlength="2000" placeholder="Bình luận" aria-label="Bình luận"></textarea>' +
@@ -416,8 +465,10 @@ export function openComposer(p, x, y) {
         '<span class="composer-actions"><button type="button" class="composer-cancel">Huỷ</button><button type="submit" class="composer-send">Gửi</button></span></div>';
     const name = $("#composer-name", f), cls = $("#composer-cls", f), ta = $("#composer-text", f);
     const ul = $(".composer-underline", f), msg = $(".composer-msg", f);
-    name.value = store.get("l9622-name") || "";
-    cls.value = store.get("l9622-cls") || "";
+    name.value = draft?.name ?? (store.get("l9622-name") || "");
+    cls.value = draft?.cls ?? (store.get("l9622-cls") || "");
+    ta.value = draft?.text || "";
+    ta.enterKeyHint = isTouch() ? "enter" : "send";
 
     // The name's underline follows its width, in the section's colour
     ul.style.setProperty("--rgb", p.rgb);
@@ -428,19 +479,22 @@ export function openComposer(p, x, y) {
         ul.style.width = w + 6 + "px";
     };
     name.addEventListener("input", sync);
-    ta.addEventListener("input", () => {
+    const grow = () => {
         ta.style.height = "auto";
         ta.style.height = ta.scrollHeight + "px";
-        msg.textContent = "";
-    });
-    // isComposing keeps Vietnamese IME input (Telex/VNI) from sending mid-word
+    };
+    ta.addEventListener("input", () => { grow(); msg.textContent = ""; });
+    // Enter sends; on a touch keyboard it starts a new line and "Gửi" sends.
+    // ⌘/Ctrl+Enter sends everywhere. isComposing keeps Vietnamese IME input
+    // (Telex/VNI) from sending mid-word.
     ta.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); f.requestSubmit(); }
+        if (e.key !== "Enter" || e.isComposing) return;
+        if (e.metaKey || e.ctrlKey || (!e.shiftKey && !isTouch())) { e.preventDefault(); f.requestSubmit(); }
     });
     [name, cls].forEach((i) => i.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); ta.focus(); }
     }));
-    $(".composer-cancel", f).addEventListener("click", (e) => { e.stopPropagation(); closeComposer(); });
+    $(".composer-cancel", f).addEventListener("click", (e) => { e.stopPropagation(); closeComposer(false, { discard: true }); });
     f.addEventListener("click", (e) => e.stopPropagation());
     f.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -456,18 +510,22 @@ export function openComposer(p, x, y) {
             text, created: Date.now(), status: "pending",
         };
         comments.push(c);
-        closeComposer(true);
+        closeComposer(true, { discard: true });
         renderAll(true);
         openById(c.id, { scroll: false });
         send(c);
     });
 
-    state.composer = { p, x, y, f };
-    if (isMobile()) {
+    const sheet = inSheet(p);
+    state.composer = { p, x, y, f, sheet };
+    if (sheet) {
+        // A line that already has comments shows them above the form
         f.classList.add("in-sheet");
-        openSheet(f, p.rgb, `Trang ${p.n} · bình luận mới`);
+        const here = clusterAt(p, y);
+        openSheet(here ? [sheetThread(here, true), f] : f, p.rgb, `Trang ${p.n} · ${here ? "trả lời" : "bình luận mới"}`, null, { end: true });
         scrollToY(p, y, 0.2);
     } else {
+        closeSheet();
         f.style.top = y * 100 + "%";
         p.margin.append(f);
         p.box.classList.add("has-open");
@@ -476,12 +534,22 @@ export function openComposer(p, x, y) {
     }
     showAnchor(p, x, y, "is-on");
     sync();
-    (name.value ? ta : name).focus({ preventScroll: true });
+    if (ta.value) grow();
+    if (focus) focusComposer();
 }
 
-export function closeComposer(silent) {
+function focusComposer() {
+    const f = state.composer?.f;
+    if (!f) return;
+    const name = $("#composer-name", f);
+    (name.value ? $("#composer-text", f) : name).focus({ preventScroll: true });
+}
+
+export function closeComposer(silent, { discard = false } = {}) {
     const c = state.composer;
     if (!c) return;
+    const field = (id) => $("#composer-" + id, c.f).value;
+    draft = discard || !field("text").trim() ? null : { name: field("name"), cls: field("cls"), text: field("text") };
     c.f.remove();
     c.p.box.classList.remove("has-open");
     if (!state.open) {
@@ -489,7 +557,7 @@ export function closeComposer(silent) {
         hideAnchor(c.p);
     }
     state.composer = null;
-    if (isMobile() && !silent) closeSheet();
+    if (c.sheet && !silent) closeSheet();
 }
 
 export const composerHasText = () => !!state.composer && !!$("#composer-text").value.trim();
@@ -511,27 +579,100 @@ async function send(c) {
     refreshItem(c);
 }
 
-// ───────── Phone: bottom sheet & long-press ─────────
+// ───────── Bottom sheet (phones, and touch tablets short of margin) & long-press ─────────
 
-export function openSheet(node, rgb, head) {
-    const sheet = $("#comment-sheet");
+// nodes: what the sheet shows; foot: a bar kept below them; end: start scrolled to the bottom
+export function openSheet(nodes, rgb, head, foot = null, { end = false } = {}) {
+    const sheet = $("#comment-sheet"), body = $(".sheet-body", sheet);
     sheet.style.setProperty("--rgb", rgb);
-    $(".sheet-body", sheet).replaceChildren(el("div", "sheet-head", head), node);
+    $(".sheet-title", sheet).textContent = head;
+    body.replaceChildren(...[nodes].flat());
+    $(".sheet-foot", sheet).replaceChildren(...(foot ? [foot] : []));
+    sheet.classList.toggle("has-foot", !!foot);
     sheet.classList.add("on");
     $("#sheet-scrim").classList.add("on");
-    sheet.scrollTop = 0;
+    body.scrollTop = end ? body.scrollHeight : 0;
+    holdBack(dismissSheet);
 }
 
 export function closeSheet() {
     $("#comment-sheet").classList.remove("on");
     $("#sheet-scrim").classList.remove("on");
+    releaseBack(dismissSheet);
+}
+
+// Close whatever the sheet shows; unsent text stays as a draft for the next form
+function dismissSheet() {
+    closeComposer();
+    closeThread();
+    closeSheet();
+}
+
+// Drag the sheet's top edge down to close it; let go early and it springs back
+function initSheetDrag(sheet) {
+    const top = $(".sheet-top", sheet);
+    let drag = null;
+    top.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0 || e.target.closest("button")) return;
+        drag = { id: e.pointerId, y0: e.clientY, dy: 0, t: e.timeStamp, v: 0 };
+        top.setPointerCapture(e.pointerId);
+    });
+    top.addEventListener("pointermove", (e) => {
+        if (drag?.id !== e.pointerId) return;
+        const dy = e.clientY - drag.y0;
+        drag.v = (dy - drag.dy) / Math.max(1, e.timeStamp - drag.t);
+        drag.dy = dy;
+        drag.t = e.timeStamp;
+        sheet.classList.add("dragging");
+        sheet.style.transform = `translateY(${dy > 0 ? dy : dy / 4}px)`; // upward it only gives a little
+    });
+    const end = (e) => {
+        if (drag?.id !== e.pointerId) return;
+        const { dy, v } = drag;
+        drag = null;
+        sheet.classList.remove("dragging");
+        sheet.style.transform = "";
+        if (dy > Math.min(120, sheet.offsetHeight / 3) || (dy > 24 && v > 0.5)) dismissSheet();
+    };
+    top.addEventListener("pointerup", end);
+    top.addEventListener("pointercancel", end);
+}
+
+// The on-screen keyboard shrinks the visual viewport, not the layout one the
+// sheet is fixed to, so it would cover the form; the sheet rides above it
+function trackKeyboard(sheet) {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const fit = () => {
+        const zoomed = Math.abs(vv.scale - 1) > 0.01; // pinch-zoomed: leave it be
+        const kb = zoomed ? 0 : Math.max(0, Math.round(innerHeight - vv.height - vv.offsetTop));
+        sheet.style.setProperty("--kb", kb + "px");
+        sheet.style.setProperty("--vvh", (zoomed ? innerHeight : vv.height) + "px");
+    };
+    vv.addEventListener("resize", fit);
+    vv.addEventListener("scroll", fit);
+    fit();
+}
+
+// Phones: say how to comment, once a visit, until the reader has done it (three visits at most)
+let hinted = false;
+export function hintLongPress() {
+    if (hinted || !isMobile() || !state.commentsOn) return;
+    hinted = true;
+    const shown = Number(store.get(HINT_KEY)) || 0;
+    if (shown >= 3) return;
+    store.set(HINT_KEY, String(shown + 1));
+    setTimeout(() => {
+        if (state.stage === "reading" && !state.open && !state.composer) showToast("Nhấn giữ một dòng để bình luận", 4200);
+    }, 900);
 }
 
 function initTouch(reader) {
-    let lp = null;
+    let lp = null, pressed = false;
     const cancel = () => { if (lp) { clearTimeout(lp.t); lp = null; } };
     reader.addEventListener("pointerdown", (e) => {
         lastPointer = e.pointerType;
+        pressed = false;
         if (e.pointerType === "mouse" || !state.commentsOn || state.open || state.composer) return;
         const paper = e.target.closest(".page-paper");
         if (!paper || e.target.closest(".comment-dot")) return;
@@ -542,8 +683,11 @@ function initTouch(reader) {
             t: setTimeout(() => {
                 const r = p.paper.getBoundingClientRect();
                 lp = null;
+                pressed = true;
                 state.guardUntil = Date.now() + 600; // the finger's release must not close the form
-                openComposer(p, (sx - r.left) / r.width, (sy - r.top) / r.height);
+                store.set(HINT_KEY, "3");
+                try { navigator.vibrate?.(8); } catch { /* not allowed */ }
+                openComposer(p, (sx - r.left) / r.width, (sy - r.top) / r.height, { focus: false });
             }, LONG_PRESS_MS),
         };
     });
@@ -551,6 +695,15 @@ function initTouch(reader) {
     reader.addEventListener("pointercancel", cancel);
     reader.addEventListener("pointermove", (e) => {
         if (lp && Math.hypot(e.clientX - lp.sx, e.clientY - lp.sy) > 10) cancel();
+    });
+    // Lifting the finger after a long-press: no click lands on the sheet's
+    // scrim, now under the finger, and the form takes focus inside the touch,
+    // which is what lets a phone raise its keyboard
+    reader.addEventListener("touchend", (e) => {
+        if (!pressed) return;
+        pressed = false;
+        e.preventDefault();
+        focusComposer();
     });
     reader.addEventListener("contextmenu", (e) => {
         if (lastPointer !== "mouse" && e.target.closest(".page-paper")) e.preventDefault();
@@ -579,11 +732,14 @@ export function initComments() {
     reader.addEventListener("pointerdown", (e) => { press = { x: e.clientX, y: e.clientY }; });
     initTouch(reader);
 
+    // A tap beside the sheet closes it, unless it would throw away typing
     $("#sheet-scrim").addEventListener("click", (e) => {
         e.stopPropagation();
-        if (composerHasText()) return;
-        closeComposer();
-        closeThread();
-        closeSheet();
+        if (Date.now() < state.guardUntil || composerHasText()) return;
+        dismissSheet();
     });
+    const sheet = $("#comment-sheet");
+    $(".sheet-close", sheet).addEventListener("click", (e) => { e.stopPropagation(); dismissSheet(); });
+    initSheetDrag(sheet);
+    trackKeyboard(sheet);
 }
