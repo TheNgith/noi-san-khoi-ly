@@ -99,6 +99,13 @@ body.st-cover .toc-spine {
     cursor: default;
 }
 
+/* Open, each row reaches across the panel, so a finger (or the pointer)
+   can take the whole line, not just the name */
+.toc-spine.open .toc-rows {
+    right: auto;
+    width: calc(var(--toc-sheet-w) - 24px);
+}
+
 /* ---- Stripes ---- */
 .toc-band {
     flex: none;
@@ -127,10 +134,16 @@ body.st-reading .toc-band {
 /* The chapter being read sticks out a little further */
 .toc-row.current .toc-band { opacity: 1; transform: scaleX(1.45); }
 
-.toc-row:hover .toc-band,
 .toc-row:focus-visible .toc-band {
     opacity: 1;
     transform: scaleX(1.7);
+}
+
+@media (hover: hover) {
+    .toc-row:hover .toc-band {
+        opacity: 1;
+        transform: scaleX(1.7);
+    }
 }
 
 /* Opening folds the stripes against the edge, rippling out from the pointer
@@ -224,16 +237,27 @@ body .toc-spine.open .toc-row .toc-band {
     100% { opacity: 0;   transform: scaleX(1); }
 }
 
-.toc-row.live:hover .toc-label,
 .toc-row.live:focus-visible .toc-label {
     scale: 1.2;
 }
 
+@media (hover: hover) {
+    .toc-row.live:hover .toc-label {
+        scale: 1.2;
+    }
+}
+
 .toc-row.current .toc-label::after,
-.toc-row.live:hover .toc-label::after,
 .toc-row.live:focus-visible .toc-label::after {
     opacity: 1;
     transform: none;
+}
+
+@media (hover: hover) {
+    .toc-row.live:hover .toc-label::after {
+        opacity: 1;
+        transform: none;
+    }
 }
 
 /* Phones open the contents from the toolbar, over a dimmed page */
@@ -241,14 +265,15 @@ body .toc-spine.open .toc-row .toc-band {
     display: none;
 }
 
-@media (max-width: 760px) {
+/* Same condition as dom.js mqMobile */
+@media (max-width: 760px), (pointer: coarse) and (max-height: 500px) {
     .toc-spine {
-        left: 3px;
+        left: calc(3px + env(safe-area-inset-left, 0px));
         width: 6px;
         top: calc(var(--nav-h) + 4px);
-        bottom: 84px;
+        bottom: calc(60px + env(safe-area-inset-bottom, 0px));
         z-index: 76;
-        --toc-sheet-w: 220px;
+        --toc-sheet-w: 240px;
     }
 
     .toc-spine::before {
@@ -256,9 +281,37 @@ body .toc-spine.open .toc-row .toc-band {
     }
 
     .toc-sheet {
-        left: -3px;
+        left: calc(-3px - env(safe-area-inset-left, 0px));
         top: calc(-4px - var(--nav-h));
-        bottom: -84px;
+        bottom: calc(-60px - env(safe-area-inset-bottom, 0px));
+        width: calc(var(--toc-sheet-w) + env(safe-area-inset-left, 0px));
+    }
+
+    /* Open (and while it fades shut), the names are a list a finger apart
+       that scrolls; toc.js starts it at the chapter being read */
+    .toc-spine.open .toc-rows,
+    .toc-spine.closing .toc-rows {
+        right: auto;
+        width: calc(var(--toc-sheet-w) - 12px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-bottom: 28px;
+        -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+        mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+        --toc-font: 17px;
+    }
+
+    .toc-spine.open .toc-row,
+    .toc-spine.closing .toc-row {
+        flex: none;
+        height: 40px;
+    }
+
+    /* The stripes would jump with the rows, so they go at once */
+    body .toc-spine.open .toc-row .toc-band,
+    .toc-spine.closing .toc-band {
+        opacity: 0;
+        transition: none;
     }
 
     .toc-band {
@@ -278,6 +331,7 @@ body .toc-spine.open .toc-row .toc-band {
         position: fixed;
         inset: 0;
         z-index: 75;
+        touch-action: none; /* the page behind stays put */
         background: rgba(0, 0, 0, 0.7);
         opacity: 0;
         pointer-events: none;
